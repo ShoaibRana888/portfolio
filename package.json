@@ -1,0 +1,11 @@
+{
+  "name": "portfolio",
+  "version": "1.0.0",
+  "description": "Interactive Portfolio with Demo Projects",
+  "scripts": {
+    "start": "serve public -l 3000"
+  },
+  "dependencies": {
+    "serve": "^14.2.0"
+  }
+}

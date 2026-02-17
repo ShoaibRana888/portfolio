@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoiceHire AI — Live Interview System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --accent-cyan: #00d4ff;
+            --accent-purple: #8b5cf6;
+            --accent-pink: #ec4899;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --text-primary: #f0f0f5;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --glow-cyan: rgba(0, 212, 255, 0.3);
+            --glow-purple: rgba(139, 92, 246, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .gradient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 20% 20%, var(--glow-purple) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, var(--glow-cyan) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(236, 72, 153, 0.1) 0%, transparent 60%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0 3rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 1.4rem;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status-badge {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 100px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .status-dot.active {
+            background: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.listening {
+            background: var(--accent-cyan);
+            box-shadow: 0 0 10px var(--accent-cyan);
+            animation: pulse 1s infinite;
+        }
+
+        .status-dot.speaking {
+            background: var(--accent-purple);
+            box-shadow: 0 0 10px var(--accent-purple);
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2rem;
+            min-height: calc(100vh - 200px);
+        }
+
+        .interview-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+        }
+
+        .timer {
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem;
+            color: var(--accent-cyan);
+        }
+
+        .conversation-area {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-height: 500px;
+        }
+
+        .message {
+            display: flex;
+            gap: 1rem;
+            animation: fadeSlideIn 0.4s ease;
+        }
+
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .ai-avatar {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+        }
+
+        .user-avatar {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-sender {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .message-text {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .message.user .message-text {
+            color: var(--text-secondary);
+        }
+
+        .voice-visualizer {
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .waveform {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: 60px;
+        }
+
+        .wave-bar {
+            width: 4px;
+            background: linear-gradient(180deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 4px;
+            transition: height 0.1s ease;
+        }
+
+        .wave-bar.inactive {
+            background: var(--bg-tertiary);
+            height: 8px !important;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px var(--glow-cyan);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            border-color: var(--accent-cyan);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .sidebar-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .progress-ring {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .ring-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .ring-svg {
+            transform: rotate(-90deg);
+        }
+
+        .ring-bg {
+            fill: none;
+            stroke: var(--bg-tertiary);
+            stroke-width: 6;
+        }
+
+        .ring-progress {
+            fill: none;
+            stroke: url(#gradient);
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 226;
+            stroke-dashoffset: 226;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .ring-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Space Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .progress-info h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .progress-info p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .topics-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .topic-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .topic-item.completed {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .topic-item.active {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .topic-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            background: var(--bg-secondary);
+        }
+
+        .topic-item.completed .topic-icon {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .topic-item.active .topic-icon {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+        }
+
+        .setup-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            text-align: center;
+        }
+
+        .setup-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .setup-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .setup-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 500px;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .setup-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .form-group {
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px var(--glow-cyan);
+        }
+
+        .form-select option {
+            background: var(--bg-secondary);
+        }
+
+        .evaluation-screen {
+            animation: fadeSlideIn 0.5s ease;
+        }
+
+        .eval-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .eval-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 100px;
+            color: var(--accent-green);
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .eval-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .eval-subtitle {
+            color: var(--text-secondary);
+        }
+
+        .eval-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .eval-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+        }
+
+        .eval-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .eval-card-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .eval-score {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .eval-score.high { color: var(--accent-green); }
+        .eval-score.medium { color: var(--accent-amber); }
+        .eval-score.low { color: #ef4444; }
+
+        .eval-bar {
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .eval-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 1s ease;
+        }
+
+        .eval-bar-fill.high { background: linear-gradient(90deg, var(--accent-green), #34d399); }
+        .eval-bar-fill.medium { background: linear-gradient(90deg, var(--accent-amber), #fbbf24); }
+        .eval-bar-fill.low { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+        .eval-notes {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .eval-summary {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .summary-text {
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .recommendation-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        .recommendation-badge.hire {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .recommendation-badge.maybe {
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid var(--accent-amber);
+            color: var(--accent-amber);
+        }
+
+        .recommendation-badge.pass {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+
+        .transcript-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+
+        .transcript-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .transcript-item:last-child {
+            border-bottom: none;
+        }
+
+        .transcript-speaker {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent-cyan);
+            margin-bottom: 0.25rem;
+        }
+
+        .transcript-speaker.user {
+            color: var(--accent-purple);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .error-toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 500;
+            z-index: 1001;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                order: -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="noise-overlay"></div>
+    <div class="gradient-bg"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">🎙️</div>
+                <span class="logo-text">VoiceHire AI</span>
+            </div>
+            <div class="status-badge">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Ready</span>
+            </div>
+        </header>
+
+        <!-- Setup Screen -->
+        <div id="setupScreen" class="setup-screen">
+            <div class="setup-icon">🤖</div>
+            <h1 class="setup-title">AI Voice Interview</h1>
+            <p class="setup-subtitle">
+                Experience a real-time conversational interview powered by AI. 
+                Our system adapts questions based on your responses for a natural dialogue.
+            </p>
+            <form class="setup-form" id="setupForm">
+                <div class="form-group">
+                    <label class="form-label">Candidate Name</label>
+                    <input type="text" class="form-input" id="candidateName" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Position</label>
+                    <select class="form-select" id="positionSelect">
+                        <option value="software-engineer">Software Engineer</option>
+                        <option value="product-manager">Product Manager</option>
+                        <option value="data-scientist">Data Scientist</option>
+                        <option value="ux-designer">UX Designer</option>
+                        <option value="marketing-manager">Marketing Manager</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Interview Focus</label>
+                    <select class="form-select" id="focusSelect">
+                        <option value="behavioral">Behavioral & Culture Fit</option>
+                        <option value="technical">Technical Skills</option>
+                        <option value="mixed">Mixed (Behavioral + Technical)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 1rem; justify-content: center;">
+                    🎤 Start Interview
+                </button>
+            </form>
+        </div>
+
+        <!-- Interview Screen -->
+        <div id="interviewScreen" class="main-content hidden">
+            <div class="interview-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Live Interview</span>
+                    <span class="timer" id="timer">00:00</span>
+                </div>
+                
+                <div class="conversation-area" id="conversationArea">
+                    <!-- Messages will be added here -->
+                </div>
+
+                <div class="voice-visualizer">
+                    <div class="waveform" id="waveform">
+                        <!-- Wave bars will be generated -->
+                    </div>
+                    <div class="control-buttons">
+                        <button class="btn btn-secondary" id="skipBtn">
+                            ⏭️ Skip Question
+                        </button>
+                        <button class="btn btn-primary" id="micBtn">
+                            🎤 Hold to Speak
+                        </button>
+                        <button class="btn btn-danger" id="endBtn">
+                            ⏹️ End Interview
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="sidebar-card">
+                    <div class="card-title">Interview Progress</div>
+                    <div class="progress-ring">
+                        <div class="ring-container">
+                            <svg class="ring-svg" width="80" height="80">
+                                <defs>
+                                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="var(--accent-cyan)" />
+                                        <stop offset="100%" stop-color="var(--accent-purple)" />
+                                    </linearGradient>
+                                </defs>
+                                <circle class="ring-bg" cx="40" cy="40" r="36" />
+                                <circle class="ring-progress" id="progressRing" cx="40" cy="40" r="36" />
+                            </svg>
+                            <span class="ring-text" id="progressText">0%</span>
+                        </div>
+                        <div class="progress-info">
+                            <h3 id="questionCount">Question 0 of 6</h3>
+                            <p id="currentPhase">Starting soon...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <div class="card-title">Topics Covered</div>
+                    <div class="topics-list" id="topicsList">
+                        <!-- Topics will be added dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Evaluation Screen -->
+        <div id="evaluationScreen" class="evaluation-screen hidden">
+            <!-- Evaluation content will be generated -->
+        </div>
+    </div>
+
+    <script>
+        // ==================== INTERVIEW LOGIC & PROMPTS ====================
+        
+        const INTERVIEW_CONFIG = {
+            'software-engineer': {
+                behavioral: [
+                    {
+                        topic: 'Problem Solving',
+                        question: "Tell me about a time when you faced a particularly challenging technical problem. How did you approach solving it?",
+                        followUps: [
+                            "What resources did you use to help solve that problem?",
+                            "How did you know when you had found the right solution?",
+                            "What would you do differently if you faced a similar problem today?"
+                        ],
+                        evaluationCriteria: ['analytical-thinking', 'persistence', 'methodology']
+                    },
+                    {
+                        topic: 'Teamwork',
+                        question: "Describe a situation where you had to collaborate closely with team members who had different working styles than you.",
+                        followUps: [
+                            "How did you adapt your communication style?",
+                            "What did you learn about effective collaboration from that experience?",
+                            "Were there any conflicts, and how were they resolved?"
+                        ],
+                        evaluationCriteria: ['collaboration', 'adaptability', 'communication']
+                    },
+                    {
+                        topic: 'Growth Mindset',
+                        question: "Tell me about a skill or technology you had to learn quickly for a project. How did you approach the learning process?",
+                        followUps: [
+                            "What challenges did you face while learning?",
+                            "How do you stay current with new technologies?",
+                            "Can you give an example of how you've applied what you learned?"
+                        ],
+                        evaluationCriteria: ['learning-agility', 'initiative', 'adaptability']
+                    }
+                ],
+                technical: [
+                    {
+                        topic: 'System Design',
+                        question: "Walk me through how you would design a URL shortening service like bit.ly.",
+                        followUps: [
+                            "How would you handle high traffic and ensure the service remains available?",
+                            "What database would you choose and why?",
+                            "How would you approach analytics and tracking for shortened URLs?"
+                        ],
+                        evaluationCriteria: ['technical-depth', 'system-thinking', 'scalability-awareness']
+                    },
+                    {
+                        topic: 'Code Quality',
+                        question: "How do you ensure code quality in your projects? What practices do you follow?",
+                        followUps: [
+                            "How do you balance code quality with delivery speed?",
+                            "Tell me about your experience with code reviews.",
+                            "How do you handle technical debt?"
+                        ],
+                        evaluationCriteria: ['best-practices', 'attention-to-detail', 'pragmatism']
+                    },
+                    {
+                        topic: 'Debugging',
+                        question: "Describe your approach to debugging a complex issue in production.",
+                        followUps: [
+                            "What tools do you typically use for debugging?",
+                            "How do you prioritize which bugs to fix first?",
+                            "Tell me about a particularly difficult bug you solved."
+                        ],
+                        evaluationCriteria: ['problem-solving', 'systematic-thinking', 'tool-proficiency']
+                    }
+                ]
+            },
+            'product-manager': {
+                behavioral: [
+                    {
+                        topic: 'Stakeholder Management',
+                        question: "Tell me about a time when you had to align multiple stakeholders with competing priorities.",
+                        followUps: [
+                            "How did you facilitate the decision-making process?",
+                            "Were there any compromises that had to be made?",
+                            "How did you communicate the final decision to all parties?"
+                        ],
+                        evaluationCriteria: ['communication', 'negotiation', 'leadership']
+                    },
+                    {
+                        topic: 'Data-Driven Decisions',
+                        question: "Describe a product decision you made based on data analysis. What was the outcome?",
+                        followUps: [
+                            "What metrics did you focus on and why?",
+                            "How did you validate your hypothesis?",
+                            "What would you do differently with hindsight?"
+                        ],
+                        evaluationCriteria: ['analytical-thinking', 'decision-making', 'accountability']
+                    },
+                    {
+                        topic: 'User Empathy',
+                        question: "Tell me about a time when user research changed your perspective on a product feature.",
+                        followUps: [
+                            "How did you conduct the research?",
+                            "What was surprising about the findings?",
+                            "How did this experience change your approach to future features?"
+                        ],
+                        evaluationCriteria: ['user-focus', 'adaptability', 'humility']
+                    }
+                ],
+                technical: [
+                    {
+                        topic: 'Product Strategy',
+                        question: "How would you approach prioritizing features for a new product launch?",
+                        followUps: [
+                            "What frameworks do you use for prioritization?",
+                            "How do you balance quick wins versus long-term strategic features?",
+                            "How do you communicate priority decisions to the team?"
+                        ],
+                        evaluationCriteria: ['strategic-thinking', 'framework-knowledge', 'communication']
+                    },
+                    {
+                        topic: 'Metrics & KPIs',
+                        question: "What metrics would you track for a social media feature, and why?",
+                        followUps: [
+                            "How would you set targets for these metrics?",
+                            "What leading indicators would you monitor?",
+                            "How would you handle metrics that conflict with each other?"
+                        ],
+                        evaluationCriteria: ['analytical-thinking', 'business-acumen', 'measurement-focus']
+                    }
+                ]
+            },
+            'data-scientist': {
+                behavioral: [
+                    {
+                        topic: 'Communication',
+                        question: "Tell me about a time you had to explain a complex analysis to non-technical stakeholders.",
+                        followUps: [
+                            "How did you simplify the technical concepts?",
+                            "What visualizations or analogies did you use?",
+                            "How did you know your explanation was successful?"
+                        ],
+                        evaluationCriteria: ['communication', 'simplification', 'stakeholder-awareness']
+                    },
+                    {
+                        topic: 'Project Ownership',
+                        question: "Describe a data project you owned from start to finish. What was your process?",
+                        followUps: [
+                            "How did you scope the project initially?",
+                            "What challenges did you face along the way?",
+                            "How did you measure the impact of your work?"
+                        ],
+                        evaluationCriteria: ['ownership', 'project-management', 'impact-focus']
+                    }
+                ],
+                technical: [
+                    {
+                        topic: 'ML Fundamentals',
+                        question: "Walk me through how you would approach building a recommendation system.",
+                        followUps: [
+                            "What algorithms would you consider and why?",
+                            "How would you handle the cold start problem?",
+                            "How would you evaluate the system's performance?"
+                        ],
+                        evaluationCriteria: ['technical-depth', 'algorithm-knowledge', 'practical-application']
+                    },
+                    {
+                        topic: 'Data Quality',
+                        question: "How do you handle missing or inconsistent data in your analyses?",
+                        followUps: [
+                            "What techniques do you use for data imputation?",
+                            "How do you document your data cleaning decisions?",
+                            "Tell me about a time when data quality issues affected your analysis."
+                        ],
+                        evaluationCriteria: ['data-handling', 'attention-to-detail', 'documentation']
+                    }
+                ]
+            },
+            'ux-designer': {
+                behavioral: [
+                    {
+                        topic: 'User Advocacy',
+                        question: "Tell me about a time when you had to advocate for the user against business pressure.",
+                        followUps: [
+                            "How did you build your case?",
+                            "What data or research did you use to support your position?",
+                            "What was the outcome?"
+                        ],
+                        evaluationCriteria: ['user-advocacy', 'persuasion', 'data-driven-design']
+                    },
+                    {
+                        topic: 'Collaboration',
+                        question: "Describe how you typically work with developers to implement your designs.",
+                        followUps: [
+                            "How do you handle situations where technical constraints limit your design?",
+                            "What artifacts do you create to communicate with developers?",
+                            "How do you ensure design fidelity in the final product?"
+                        ],
+                        evaluationCriteria: ['collaboration', 'communication', 'pragmatism']
+                    }
+                ],
+                technical: [
+                    {
+                        topic: 'Design Process',
+                        question: "Walk me through your design process for a new feature from research to handoff.",
+                        followUps: [
+                            "How do you involve stakeholders at each stage?",
+                            "What tools do you use and why?",
+                            "How do you handle iteration and feedback?"
+                        ],
+                        evaluationCriteria: ['process-knowledge', 'tool-proficiency', 'iteration']
+                    },
+                    {
+                        topic: 'Accessibility',
+                        question: "How do you ensure your designs are accessible to all users?",
+                        followUps: [
+                            "What guidelines or standards do you follow?",
+                            "Can you give an example of an accessibility improvement you made?",
+                            "How do you test for accessibility?"
+                        ],
+                        evaluationCriteria: ['accessibility-knowledge', 'inclusive-design', 'testing']
+                    }
+                ]
+            },
+            'marketing-manager': {
+                behavioral: [
+                    {
+                        topic: 'Campaign Management',
+                        question: "Tell me about a marketing campaign you led that exceeded expectations. What made it successful?",
+                        followUps: [
+                            "How did you measure success?",
+                            "What would you do differently if you ran it again?",
+                            "How did you manage the team and resources?"
+                        ],
+                        evaluationCriteria: ['strategic-thinking', 'execution', 'measurement']
+                    },
+                    {
+                        topic: 'Cross-functional Work',
+                        question: "Describe a time you had to work closely with sales or product teams on a marketing initiative.",
+                        followUps: [
+                            "How did you align goals across teams?",
+                            "What challenges arose and how did you address them?",
+                            "What was the impact of the collaboration?"
+                        ],
+                        evaluationCriteria: ['collaboration', 'alignment', 'impact-focus']
+                    }
+                ],
+                technical: [
+                    {
+                        topic: 'Analytics',
+                        question: "How do you use data to inform your marketing decisions?",
+                        followUps: [
+                            "What tools and platforms do you use for analytics?",
+                            "How do you attribute conversions across channels?",
+                            "Tell me about a data-driven optimization you made."
+                        ],
+                        evaluationCriteria: ['analytical-thinking', 'tool-proficiency', 'optimization']
+                    },
+                    {
+                        topic: 'Channel Strategy',
+                        question: "How would you approach building a marketing strategy for a new product launch?",
+                        followUps: [
+                            "How do you decide which channels to prioritize?",
+                            "How do you set and allocate budget?",
+                            "How do you measure ROI across channels?"
+                        ],
+                        evaluationCriteria: ['strategic-planning', 'budget-management', 'channel-knowledge']
+                    }
+                ]
+            }
+        };
+
+        // Evaluation criteria descriptions
+        const CRITERIA_DESCRIPTIONS = {
+            'analytical-thinking': 'Ability to break down complex problems and analyze information systematically',
+            'persistence': 'Determination to overcome obstacles and see tasks through to completion',
+            'methodology': 'Structured approach to problem-solving and work processes',
+            'collaboration': 'Effectiveness in working with others toward shared goals',
+            'adaptability': 'Flexibility in adjusting to new situations and changing requirements',
+            'communication': 'Clarity and effectiveness in conveying ideas and information',
+            'learning-agility': 'Speed and effectiveness in acquiring new knowledge and skills',
+            'initiative': 'Proactive approach to identifying and addressing opportunities',
+            'technical-depth': 'Comprehensive understanding of technical concepts and systems',
+            'system-thinking': 'Ability to understand how components interact within larger systems',
+            'scalability-awareness': 'Understanding of how to design solutions that can grow',
+            'best-practices': 'Knowledge and application of industry standards and conventions',
+            'attention-to-detail': 'Thoroughness in completing tasks with accuracy',
+            'pragmatism': 'Balance between ideal solutions and practical constraints',
+            'problem-solving': 'Effectiveness in identifying solutions to challenges',
+            'systematic-thinking': 'Organized and logical approach to analysis',
+            'tool-proficiency': 'Skill in using relevant tools and technologies',
+            'leadership': 'Ability to guide and influence others',
+            'negotiation': 'Skill in reaching agreements and resolving conflicts',
+            'decision-making': 'Quality and timeliness of decisions',
+            'accountability': 'Taking responsibility for actions and outcomes',
+            'user-focus': 'Prioritization of user needs and experiences',
+            'humility': 'Openness to feedback and acknowledgment of limitations',
+            'strategic-thinking': 'Long-term vision and planning capability',
+            'framework-knowledge': 'Understanding of relevant frameworks and methodologies',
+            'business-acumen': 'Understanding of business dynamics and drivers',
+            'measurement-focus': 'Emphasis on quantifiable outcomes and metrics',
+            'simplification': 'Ability to make complex things understandable',
+            'stakeholder-awareness': 'Understanding of different stakeholder needs',
+            'ownership': 'Taking full responsibility for projects and outcomes',
+            'project-management': 'Skill in planning and executing projects',
+            'impact-focus': 'Orientation toward creating meaningful results',
+            'algorithm-knowledge': 'Understanding of algorithms and their applications',
+            'practical-application': 'Ability to apply theoretical knowledge practically',
+            'data-handling': 'Skill in working with data effectively',
+            'documentation': 'Thoroughness in recording processes and decisions',
+            'user-advocacy': 'Championing user needs and perspectives',
+            'persuasion': 'Ability to influence others through reasoning',
+            'data-driven-design': 'Using data to inform design decisions',
+            'process-knowledge': 'Understanding of relevant processes and workflows',
+            'iteration': 'Continuous improvement through repeated cycles',
+            'accessibility-knowledge': 'Understanding of accessibility requirements',
+            'inclusive-design': 'Designing for diverse user needs',
+            'testing': 'Skill in validating work through testing',
+            'execution': 'Ability to implement plans effectively',
+            'alignment': 'Creating shared understanding and goals',
+            'optimization': 'Improving efficiency and effectiveness',
+            'strategic-planning': 'Developing comprehensive plans for achieving goals',
+            'budget-management': 'Effective allocation and tracking of resources',
+            'channel-knowledge': 'Understanding of marketing channels and their use'
+        };
+
+        // ==================== APPLICATION STATE ====================
+        
+        let state = {
+            phase: 'setup', // setup, interview, evaluation
+            candidateName: '',
+            position: '',
+            focus: '',
+            currentQuestionIndex: 0,
+            questions: [],
+            responses: [],
+            startTime: null,
+            timerInterval: null,
+            isListening: false,
+            isSpeaking: false,
+            recognition: null,
+            synthesis: window.speechSynthesis,
+            currentTranscript: ''
+        };
+
+        // ==================== DOM ELEMENTS ====================
+        
+        const elements = {
+            setupScreen: document.getElementById('setupScreen'),
+            interviewScreen: document.getElementById('interviewScreen'),
+            evaluationScreen: document.getElementById('evaluationScreen'),
+            setupForm: document.getElementById('setupForm'),
+            candidateName: document.getElementById('candidateName'),
+            positionSelect: document.getElementById('positionSelect'),
+            focusSelect: document.getElementById('focusSelect'),
+            conversationArea: document.getElementById('conversationArea'),
+            waveform: document.getElementById('waveform'),
+            micBtn: document.getElementById('micBtn'),
+            skipBtn: document.getElementById('skipBtn'),
+            endBtn: document.getElementById('endBtn'),
+            timer: document.getElementById('timer'),
+            statusDot: document.getElementById('statusDot'),
+            statusText: document.getElementById('statusText'),
+            progressRing: document.getElementById('progressRing'),
+            progressText: document.getElementById('progressText'),
+            questionCount: document.getElementById('questionCount'),
+            currentPhase: document.getElementById('currentPhase'),
+            topicsList: document.getElementById('topicsList')
+        };
+
+        // ==================== SPEECH RECOGNITION SETUP ====================
+        
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                showError('Speech recognition is not supported in this browser. Please use Chrome or Edge.');
+                return false;
+            }
+
+            state.recognition = new SpeechRecognition();
+            state.recognition.continuous = true;
+            state.recognition.interimResults = true;
+            state.recognition.lang = 'en-US';
+
+            state.recognition.onresult = (event) => {
+                let finalTranscript = '';
+                let interimTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                if (finalTranscript) {
+                    state.currentTranscript += finalTranscript;
+                }
+                
+                updateLiveTranscript(state.currentTranscript + interimTranscript);
+            };
+
+            state.recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                if (event.error !== 'no-speech') {
+                    showError(`Speech recognition error: ${event.error}`);
+                }
+            };
+
+            state.recognition.onend = () => {
+                if (state.isListening) {
+                    // Restart if still supposed to be listening
+                    try {
+                        state.recognition.start();
+                    } catch (e) {
+                        console.log('Recognition already started');
+                    }
+                }
+            };
+
+            return true;
+        }
+
+        // ==================== SPEECH SYNTHESIS ====================
+        
+        function speak(text, onEnd = null) {
+            return new Promise((resolve) => {
+                state.synthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.95;
+                utterance.pitch = 1;
+                utterance.volume = 1;
+                
+                // Try to get a good voice
+                const voices = state.synthesis.getVoices();
+                const preferredVoice = voices.find(v => 
+                    v.name.includes('Samantha') || 
+                    v.name.includes('Google') || 
+                    v.name.includes('Microsoft') ||
+                    v.lang.startsWith('en')
+                );
+                if (preferredVoice) {
+                    utterance.voice = preferredVoice;
+                }
+
+                state.isSpeaking = true;
+                updateStatus('speaking', 'AI Speaking...');
+                animateWaveform(true);
+
+                utterance.onend = () => {
+                    state.isSpeaking = false;
+                    updateStatus('active', 'Ready');
+                    animateWaveform(false);
+                    if (onEnd) onEnd();
+                    resolve();
+                };
+
+                utterance.onerror = () => {
+                    state.isSpeaking = false;
+                    updateStatus('active', 'Ready');
+                    animateWaveform(false);
+                    resolve();
+                };
+
+                state.synthesis.speak(utterance);
+            });
+        }
+
+        // ==================== UI UPDATES ====================
+        
+        function updateStatus(status, text) {
+            elements.statusDot.className = 'status-dot ' + status;
+            elements.statusText.textContent = text;
+        }
+
+        function initWaveform() {
+            elements.waveform.innerHTML = '';
+            for (let i = 0; i < 40; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'wave-bar inactive';
+                bar.style.height = '8px';
+                elements.waveform.appendChild(bar);
+            }
+        }
+
+        function animateWaveform(active) {
+            const bars = elements.waveform.querySelectorAll('.wave-bar');
+            bars.forEach((bar, i) => {
+                if (active) {
+                    bar.classList.remove('inactive');
+                    const animate = () => {
+                        if (state.isSpeaking || state.isListening) {
+                            const height = Math.random() * 40 + 10;
+                            bar.style.height = height + 'px';
+                            setTimeout(animate, 100 + Math.random() * 100);
+                        } else {
+                            bar.style.height = '8px';
+                            bar.classList.add('inactive');
+                        }
+                    };
+                    setTimeout(animate, i * 20);
+                } else {
+                    bar.classList.add('inactive');
+                    bar.style.height = '8px';
+                }
+            });
+        }
+
+        function addMessage(sender, text, isAI = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isAI ? 'ai' : 'user'}`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar ${isAI ? 'ai-avatar' : 'user-avatar'}">
+                    ${isAI ? '🤖' : '👤'}
+                </div>
+                <div class="message-content">
+                    <div class="message-sender">${sender}</div>
+                    <div class="message-text">${text}</div>
+                </div>
+            `;
+            
+            elements.conversationArea.appendChild(messageDiv);
+            elements.conversationArea.scrollTop = elements.conversationArea.scrollHeight;
+        }
+
+        let liveMessageDiv = null;
+        
+        function updateLiveTranscript(text) {
+            if (!liveMessageDiv) {
+                liveMessageDiv = document.createElement('div');
+                liveMessageDiv.className = 'message user';
+                liveMessageDiv.innerHTML = `
+                    <div class="message-avatar user-avatar">👤</div>
+                    <div class="message-content">
+                        <div class="message-sender">${state.candidateName}</div>
+                        <div class="message-text live-text"></div>
+                    </div>
+                `;
+                elements.conversationArea.appendChild(liveMessageDiv);
+            }
+            
+            liveMessageDiv.querySelector('.live-text').textContent = text || '...';
+            elements.conversationArea.scrollTop = elements.conversationArea.scrollHeight;
+        }
+
+        function finalizeLiveTranscript() {
+            if (liveMessageDiv && state.currentTranscript.trim()) {
+                liveMessageDiv.querySelector('.live-text').textContent = state.currentTranscript.trim();
+            } else if (liveMessageDiv) {
+                liveMessageDiv.remove();
+            }
+            liveMessageDiv = null;
+        }
+
+        function updateProgress() {
+            const total = state.questions.length;
+            const current = state.currentQuestionIndex;
+            const percent = Math.round((current / total) * 100);
+            
+            const circumference = 2 * Math.PI * 36;
+            const offset = circumference - (percent / 100) * circumference;
+            
+            elements.progressRing.style.strokeDashoffset = offset;
+            elements.progressText.textContent = percent + '%';
+            elements.questionCount.textContent = `Question ${current} of ${total}`;
+            
+            if (current < total) {
+                elements.currentPhase.textContent = state.questions[current].topic;
+            }
+        }
+
+        function updateTopics() {
+            elements.topicsList.innerHTML = '';
+            
+            state.questions.forEach((q, i) => {
+                const item = document.createElement('div');
+                let statusClass = '';
+                let icon = '○';
+                
+                if (i < state.currentQuestionIndex) {
+                    statusClass = 'completed';
+                    icon = '✓';
+                } else if (i === state.currentQuestionIndex) {
+                    statusClass = 'active';
+                    icon = '●';
+                }
+                
+                item.className = `topic-item ${statusClass}`;
+                item.innerHTML = `
+                    <div class="topic-icon">${icon}</div>
+                    <span>${q.topic}</span>
+                `;
+                elements.topicsList.appendChild(item);
+            });
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            state.startTime = Date.now();
+            state.timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+                elements.timer.textContent = formatTime(elapsed);
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+            }
+        }
+
+        function showError(message) {
+            const toast = document.createElement('div');
+            toast.className = 'error-toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // ==================== INTERVIEW FLOW ====================
+        
+        function prepareQuestions() {
+            const config = INTERVIEW_CONFIG[state.position];
+            let questions = [];
+            
+            if (state.focus === 'behavioral') {
+                questions = [...config.behavioral];
+            } else if (state.focus === 'technical') {
+                questions = [...config.technical];
+            } else {
+                // Mixed - take some from each
+                questions = [
+                    ...config.behavioral.slice(0, 2),
+                    ...config.technical.slice(0, 2)
+                ];
+            }
+            
+            // Shuffle questions
+            for (let i = questions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [questions[i], questions[j]] = [questions[j], questions[i]];
+            }
+            
+            state.questions = questions;
+        }
+
+        async function startInterview() {
+            // Initialize
+            initWaveform();
+            updateStatus('active', 'Starting...');
+            startTimer();
+            updateProgress();
+            updateTopics();
+            
+            // Welcome message
+            const welcomeText = `Hello ${state.candidateName}! Welcome to your interview for the ${formatPosition(state.position)} position. I'm your AI interviewer today. I'll be asking you some questions and may follow up based on your responses. Take your time with each answer, and when you're ready to speak, hold the microphone button. Let's begin with the first question.`;
+            
+            addMessage('AI Interviewer', welcomeText, true);
+            await speak(welcomeText);
+            
+            // Ask first question
+            setTimeout(() => askCurrentQuestion(), 1000);
+        }
+
+        function formatPosition(pos) {
+            return pos.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        }
+
+        async function askCurrentQuestion() {
+            if (state.currentQuestionIndex >= state.questions.length) {
+                endInterview();
+                return;
+            }
+            
+            const question = state.questions[state.currentQuestionIndex];
+            updateProgress();
+            updateTopics();
+            
+            addMessage('AI Interviewer', question.question, true);
+            await speak(question.question);
+            
+            updateStatus('active', 'Your turn to speak');
+            elements.micBtn.disabled = false;
+        }
+
+        async function processResponse() {
+            const response = state.currentTranscript.trim();
+            finalizeLiveTranscript();
+            
+            if (!response) {
+                updateStatus('active', 'No response detected');
+                return;
+            }
+            
+            // Store the response
+            const question = state.questions[state.currentQuestionIndex];
+            state.responses.push({
+                topic: question.topic,
+                question: question.question,
+                answer: response,
+                criteria: question.evaluationCriteria
+            });
+            
+            // Decide whether to ask follow-up or move on
+            const shouldFollowUp = Math.random() > 0.4 && response.length > 50;
+            
+            if (shouldFollowUp && question.followUps.length > 0) {
+                // Ask a follow-up question
+                const followUpIndex = Math.floor(Math.random() * question.followUps.length);
+                const followUp = question.followUps[followUpIndex];
+                
+                const transitionPhrases = [
+                    "That's interesting. ",
+                    "Thank you for sharing that. ",
+                    "Great, I'd like to explore that further. ",
+                    "I appreciate that response. "
+                ];
+                const transition = transitionPhrases[Math.floor(Math.random() * transitionPhrases.length)];
+                
+                addMessage('AI Interviewer', transition + followUp, true);
+                await speak(transition + followUp);
+                
+                // Remove used follow-up
+                question.followUps.splice(followUpIndex, 1);
+            } else {
+                // Move to next question
+                state.currentQuestionIndex++;
+                
+                if (state.currentQuestionIndex >= state.questions.length) {
+                    endInterview();
+                    return;
+                }
+                
+                const transitionPhrases = [
+                    "Thank you. Let's move on to the next topic. ",
+                    "Great answer. Moving forward, ",
+                    "I appreciate your thoughts on that. Next question: ",
+                    "Good. Let me ask you about something else. "
+                ];
+                const transition = transitionPhrases[Math.floor(Math.random() * transitionPhrases.length)];
+                
+                setTimeout(() => {
+                    addMessage('AI Interviewer', transition, true);
+                    speak(transition).then(() => askCurrentQuestion());
+                }, 500);
+            }
+            
+            state.currentTranscript = '';
+        }
+
+        function skipQuestion() {
+            state.responses.push({
+                topic: state.questions[state.currentQuestionIndex].topic,
+                question: state.questions[state.currentQuestionIndex].question,
+                answer: '[Skipped]',
+                criteria: state.questions[state.currentQuestionIndex].evaluationCriteria
+            });
+            
+            state.currentQuestionIndex++;
+            state.currentTranscript = '';
+            finalizeLiveTranscript();
+            
+            if (state.currentQuestionIndex >= state.questions.length) {
+                endInterview();
+            } else {
+                askCurrentQuestion();
+            }
+        }
+
+        // ==================== EVALUATION GENERATION ====================
+        
+        function generateEvaluation() {
+            const scores = {};
+            const notes = {};
+            
+            // Analyze responses and generate scores
+            state.responses.forEach(response => {
+                response.criteria.forEach(criterion => {
+                    if (!scores[criterion]) {
+                        scores[criterion] = [];
+                        notes[criterion] = [];
+                    }
+                    
+                    // Simple scoring based on response length and content
+                    let score;
+                    if (response.answer === '[Skipped]') {
+                        score = 0;
+                        notes[criterion].push('Question was skipped');
+                    } else {
+                        const length = response.answer.length;
+                        const hasDetails = length > 100;
+                        const hasExamples = /example|instance|time when|situation/i.test(response.answer);
+                        const hasStructure = /first|then|finally|because|therefore/i.test(response.answer);
+                        
+                        score = 50; // Base score
+                        if (hasDetails) score += 15;
+                        if (hasExamples) score += 20;
+                        if (hasStructure) score += 15;
+                        
+                        // Add some variance
+                        score += Math.floor(Math.random() * 10) - 5;
+                        score = Math.max(30, Math.min(100, score));
+                        
+                        // Generate note
+                        if (score >= 80) {
+                            notes[criterion].push('Strong response with good detail and examples');
+                        } else if (score >= 60) {
+                            notes[criterion].push('Adequate response, could benefit from more specific examples');
+                        } else {
+                            notes[criterion].push('Response lacked depth or specific examples');
+                        }
+                    }
+                    
+                    scores[criterion].push(score);
+                });
+            });
+            
+            // Average scores per criterion
+            const avgScores = {};
+            Object.keys(scores).forEach(criterion => {
+                const validScores = scores[criterion].filter(s => s > 0);
+                avgScores[criterion] = validScores.length > 0 
+                    ? Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length)
+                    : 0;
+            });
+            
+            // Calculate overall score
+            const allScores = Object.values(avgScores).filter(s => s > 0);
+            const overallScore = allScores.length > 0
+                ? Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length)
+                : 0;
+            
+            // Determine recommendation
+            let recommendation;
+            if (overallScore >= 75) {
+                recommendation = 'hire';
+            } else if (overallScore >= 55) {
+                recommendation = 'maybe';
+            } else {
+                recommendation = 'pass';
+            }
+            
+            return {
+                candidateName: state.candidateName,
+                position: formatPosition(state.position),
+                date: new Date().toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                }),
+                duration: elements.timer.textContent,
+                overallScore,
+                recommendation,
+                scores: avgScores,
+                notes,
+                responses: state.responses
+            };
+        }
+
+        function renderEvaluation(evaluation) {
+            const getScoreClass = (score) => {
+                if (score >= 70) return 'high';
+                if (score >= 50) return 'medium';
+                return 'low';
+            };
+
+            const getRecommendationText = (rec) => {
+                switch(rec) {
+                    case 'hire': return '✓ Recommend for Hire';
+                    case 'maybe': return '? Consider for Second Round';
+                    case 'pass': return '✗ Not Recommended';
+                }
+            };
+
+            elements.evaluationScreen.innerHTML = `
+                <div class="eval-header">
+                    <div class="eval-badge">
+                        ✓ Interview Complete
+                    </div>
+                    <h1 class="eval-title">Candidate Evaluation Report</h1>
+                    <p class="eval-subtitle">
+                        ${evaluation.candidateName} • ${evaluation.position} • ${evaluation.date}
+                    </p>
+                </div>
+
+                <div class="eval-summary">
+                    <div class="summary-title">📊 Overall Assessment</div>
+                    <div style="display: flex; align-items: center; gap: 2rem; margin-bottom: 1rem;">
+                        <div>
+                            <div style="font-size: 3rem; font-weight: 700; font-family: 'Space Mono', monospace;" class="${getScoreClass(evaluation.overallScore)}">
+                                ${evaluation.overallScore}%
+                            </div>
+                            <div style="color: var(--text-muted); font-size: 0.85rem;">Overall Score</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="eval-bar" style="height: 12px; border-radius: 6px;">
+                                <div class="eval-bar-fill ${getScoreClass(evaluation.overallScore)}" style="width: ${evaluation.overallScore}%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="summary-text">
+                        The candidate completed a ${evaluation.duration} interview covering ${state.questions.length} main topics.
+                        Based on the responses provided, the AI assessment evaluates ${evaluation.candidateName} across multiple competency areas.
+                    </p>
+                    <div class="recommendation-badge ${evaluation.recommendation}">
+                        ${getRecommendationText(evaluation.recommendation)}
+                    </div>
+                </div>
+
+                <div class="eval-grid">
+                    ${Object.entries(evaluation.scores).map(([criterion, score]) => `
+                        <div class="eval-card">
+                            <div class="eval-card-header">
+                                <span class="eval-card-title">
+                                    ${criterion.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                                </span>
+                                <span class="eval-score ${getScoreClass(score)}">${score}%</span>
+                            </div>
+                            <div class="eval-bar">
+                                <div class="eval-bar-fill ${getScoreClass(score)}" style="width: ${score}%;"></div>
+                            </div>
+                            <p class="eval-notes">${CRITERIA_DESCRIPTIONS[criterion] || 'Assessment of this competency area.'}</p>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="transcript-section">
+                    <div class="summary-title">📝 Interview Transcript</div>
+                    ${evaluation.responses.map(r => `
+                        <div class="transcript-item">
+                            <div class="transcript-speaker">AI Interviewer</div>
+                            <p>${r.question}</p>
+                        </div>
+                        <div class="transcript-item">
+                            <div class="transcript-speaker user">${evaluation.candidateName}</div>
+                            <p>${r.answer}</p>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button class="btn btn-primary" onclick="location.reload()">
+                        🔄 Start New Interview
+                    </button>
+                </div>
+            `;
+        }
+
+        function endInterview() {
+            stopTimer();
+            state.synthesis.cancel();
+            if (state.recognition) {
+                state.recognition.stop();
+            }
+            state.isListening = false;
+            
+            // Closing message
+            const closingText = `Thank you ${state.candidateName} for completing this interview. I'm now generating your evaluation report.`;
+            addMessage('AI Interviewer', closingText, true);
+            speak(closingText).then(() => {
+                // Transition to evaluation
+                elements.interviewScreen.classList.add('hidden');
+                elements.evaluationScreen.classList.remove('hidden');
+                
+                const evaluation = generateEvaluation();
+                renderEvaluation(evaluation);
+            });
+        }
+
+        // ==================== EVENT LISTENERS ====================
+        
+        elements.setupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            state.candidateName = elements.candidateName.value.trim();
+            state.position = elements.positionSelect.value;
+            state.focus = elements.focusSelect.value;
+            
+            if (!initSpeechRecognition()) {
+                return;
+            }
+            
+            prepareQuestions();
+            
+            // Transition screens
+            elements.setupScreen.classList.add('hidden');
+            elements.interviewScreen.classList.remove('hidden');
+            
+            state.phase = 'interview';
+            startInterview();
+        });
+
+        // Hold to speak functionality
+        elements.micBtn.addEventListener('mousedown', () => {
+            if (state.isSpeaking) return;
+            
+            state.isListening = true;
+            state.currentTranscript = '';
+            updateStatus('listening', 'Listening...');
+            animateWaveform(true);
+            elements.micBtn.textContent = '🔴 Recording...';
+            
+            try {
+                state.recognition.start();
+            } catch (e) {
+                console.log('Recognition may already be running');
+            }
+        });
+
+        elements.micBtn.addEventListener('mouseup', () => {
+            if (!state.isListening) return;
+            
+            state.isListening = false;
+            animateWaveform(false);
+            elements.micBtn.textContent = '🎤 Hold to Speak';
+            updateStatus('active', 'Processing...');
+            
+            try {
+                state.recognition.stop();
+            } catch (e) {
+                console.log('Recognition may not be running');
+            }
+            
+            setTimeout(() => processResponse(), 500);
+        });
+
+        // Also handle touch events for mobile
+        elements.micBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            elements.micBtn.dispatchEvent(new MouseEvent('mousedown'));
+        });
+
+        elements.micBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            elements.micBtn.dispatchEvent(new MouseEvent('mouseup'));
+        });
+
+        elements.skipBtn.addEventListener('click', () => {
+            if (!state.isSpeaking) {
+                skipQuestion();
+            }
+        });
+
+        elements.endBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to end the interview? Your responses so far will be evaluated.')) {
+                endInterview();
+            }
+        });
+
+        // Load voices
+        if (window.speechSynthesis) {
+            window.speechSynthesis.getVoices();
+            window.speechSynthesis.onvoiceschanged = () => {
+                window.speechSynthesis.getVoices();
+            };
+        }
+
+        // Initialize waveform on load
+        initWaveform();
+    </script>
+</body>
+</html>

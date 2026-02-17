@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elena Vance — A Writer's Journey</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #1a1a2e;
+            --parchment: #f5f0e8;
+            --gold: #c9a959;
+            --gold-dark: #8b7355;
+            --pen-body: #2c1810;
+            --pen-cap: #1a0f0a;
+            --pen-nib: #d4af37;
+            --cream: #faf8f3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            background: var(--parchment);
+            color: var(--ink);
+            overflow-x: hidden;
+            line-height: 1.8;
+        }
+
+        /* Scroll Progress Indicator */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-dark));
+            z-index: 1000;
+            width: 0%;
+        }
+
+        /* Pen Body Container (left side - has barrel and nib) */
+        .pen-body-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(calc(-50% - 60px), -50%);
+            z-index: 99;
+            pointer-events: none;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+        }
+
+        /* Pen Cap Container (right side - covers the nib when closed) */
+        .pen-cap-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(calc(-50% + 118px), -50%);
+            z-index: 100;
+            pointer-events: none;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+        }
+
+        /* When pen is opened - split to sides */
+        .pen-body-container.opened {
+            transform: translate(calc(-50% - 45vw), -50%);
+        }
+
+        .pen-cap-container.opened {
+            transform: translate(calc(-50% + 45vw), -50%);
+        }
+
+        /* Hide when at footer */
+        .pen-cap-container.hidden,
+        .pen-body-container.hidden {
+            opacity: 0;
+        }
+
+        /* Pen Body (barrel + nib pointing right) */
+        .pen-body {
+            display: flex;
+            align-items: center;
+            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.3));
+        }
+
+        /* Main barrel */
+        .pen-barrel {
+            width: 280px;
+            height: 55px;
+            background: linear-gradient(180deg, 
+                #4a3020 0%, 
+                var(--pen-body) 15%,
+                #1a0f08 45%,
+                #1a0f08 55%,
+                var(--pen-body) 85%,
+                #3a2515 100%
+            );
+            border-radius: 28px 0 0 28px;
+            position: relative;
+            box-shadow: 
+                0 15px 40px rgba(0,0,0,0.4),
+                inset 0 2px 4px rgba(255,255,255,0.05),
+                inset 0 -2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Subtle highlight on barrel */
+        .pen-barrel::before {
+            content: '';
+            position: absolute;
+            left: 30px;
+            top: 8px;
+            width: 180px;
+            height: 15px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255,255,255,0.08) 30%, 
+                rgba(255,255,255,0.08) 70%, 
+                transparent
+            );
+            border-radius: 10px;
+        }
+
+        /* Gold band between barrel and grip */
+        .pen-band {
+            width: 12px;
+            height: 58px;
+            background: linear-gradient(180deg, 
+                #f4e4a6 0%,
+                var(--gold) 30%, 
+                var(--gold-dark) 50%,
+                var(--gold) 70%,
+                #f4e4a6 100%
+            );
+            flex-shrink: 0;
+        }
+
+        /* Grip section before nib */
+        .pen-grip {
+            width: 80px;
+            height: 50px;
+            background: linear-gradient(180deg, 
+                #3d2817 0%, 
+                var(--pen-body) 20%,
+                #1a0f08 50%,
+                var(--pen-body) 80%,
+                #2a1a10 100%
+            );
+            border-radius: 0;
+            position: relative;
+        }
+
+        /* Nib wrapper */
+        .pen-nib-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .pen-nib {
+            width: 70px;
+            height: 26px;
+            background: linear-gradient(180deg, 
+                #f4e4a6 0%,
+                var(--pen-nib) 25%,
+                #8b6914 50%,
+                var(--pen-nib) 75%,
+                #f4e4a6 100%
+            );
+            clip-path: polygon(0 10%, 0 90%, 100% 50%);
+            position: relative;
+        }
+
+        /* Nib center line */
+        .pen-nib::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 1.5px;
+            background: linear-gradient(90deg, var(--ink), rgba(26,26,46,0.5));
+        }
+
+        /* Ink drop */
+        .ink-drop {
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background: var(--ink);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .pen-body-container.opened .ink-drop {
+            opacity: 1;
+            animation: drip 2s ease-in-out infinite;
+        }
+
+        @keyframes drip {
+            0%, 100% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(calc(-50% + 8px)) scale(1.1); }
+        }
+
+        /* Pen Cap (covers nib - opens to the right) */
+        .pen-cap {
+            width: 180px;
+            height: 65px;
+            background: linear-gradient(180deg, 
+                #3d2817 0%, 
+                var(--pen-cap) 20%,
+                #0d0705 50%,
+                var(--pen-cap) 80%,
+                #2a1a10 100%
+            );
+            border-radius: 10px 32px 32px 10px;
+            position: relative;
+            box-shadow: 
+                0 15px 40px rgba(0,0,0,0.4),
+                inset 0 2px 4px rgba(255,255,255,0.1),
+                inset 0 -2px 4px rgba(0,0,0,0.3);
+            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.3));
+        }
+
+        /* Gold circle on cap */
+        .pen-cap::before {
+            content: '';
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            background: radial-gradient(circle at 30% 30%, 
+                #f4e4a6 0%, 
+                var(--gold) 40%, 
+                var(--gold-dark) 100%
+            );
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 2px 4px rgba(255,255,255,0.4),
+                0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Gold band on cap */
+        .pen-cap::after {
+            content: '';
+            position: absolute;
+            left: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 45px;
+            background: linear-gradient(180deg, 
+                #f4e4a6 0%,
+                var(--gold) 30%, 
+                var(--gold-dark) 50%,
+                var(--gold) 70%,
+                #f4e4a6 100%
+            );
+            border-radius: 2px;
+        }
+
+        /* Sections */
+        .section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 50px;
+            position: relative;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--cream) 0%, var(--parchment) 100%);
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .hero-content {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.8s ease;
+        }
+
+        .hero h1 {
+            font-family: 'Libre Baskerville', serif;
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 400;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            color: var(--ink);
+        }
+
+        .hero .tagline {
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            font-style: italic;
+            color: var(--gold-dark);
+            letter-spacing: 0.1em;
+        }
+
+        .scroll-hint {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            opacity: 0.6;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        .scroll-hint span {
+            font-size: 0.8rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .scroll-hint .arrow {
+            width: 20px;
+            height: 20px;
+            border-right: 2px solid var(--ink);
+            border-bottom: 2px solid var(--ink);
+            transform: rotate(45deg);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(10px); }
+        }
+
+        /* Story Sections */
+        .story-section {
+            background: var(--ink);
+            color: var(--parchment);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .story-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse at 20% 50%, rgba(201, 169, 89, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 50%, rgba(201, 169, 89, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .story-content {
+            max-width: 700px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1s ease;
+        }
+
+        .story-content.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .story-content .chapter {
+            font-size: 0.9rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .story-content .chapter::before,
+        .story-content .chapter::after {
+            content: '';
+            width: 50px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold));
+        }
+
+        .story-content .chapter::after {
+            background: linear-gradient(90deg, var(--gold), transparent);
+        }
+
+        .story-content h2 {
+            font-family: 'Libre Baskerville', serif;
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-weight: 400;
+            margin-bottom: 40px;
+            line-height: 1.3;
+        }
+
+        .story-content p {
+            font-size: clamp(1.1rem, 1.5vw, 1.25rem);
+            line-height: 2;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .story-content .quote {
+            font-style: italic;
+            font-size: clamp(1.3rem, 2vw, 1.6rem);
+            color: var(--gold);
+            padding: 40px 0;
+            border-top: 1px solid rgba(201, 169, 89, 0.3);
+            border-bottom: 1px solid rgba(201, 169, 89, 0.3);
+            margin: 40px 0;
+        }
+
+        /* Image Section */
+        .image-section {
+            background: var(--cream);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 100px;
+            padding: 100px;
+            align-items: center;
+        }
+
+        .image-placeholder {
+            aspect-ratio: 4/5;
+            background: linear-gradient(135deg, var(--ink) 0%, #2a2a4a 100%);
+            border-radius: 4px;
+            box-shadow: 
+                0 30px 60px rgba(0,0,0,0.2),
+                0 10px 20px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-placeholder::before {
+            content: '';
+            position: absolute;
+            inset: 20px;
+            border: 1px solid var(--gold);
+            opacity: 0.3;
+        }
+
+        .image-placeholder::after {
+            content: 'Portrait of the Writer';
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-style: italic;
+            color: var(--gold);
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+            white-space: nowrap;
+        }
+
+        .image-text {
+            opacity: 0;
+            transform: translateX(50px);
+            transition: all 1s ease 0.3s;
+        }
+
+        .image-text.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .image-text h3 {
+            font-family: 'Libre Baskerville', serif;
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-weight: 400;
+            margin-bottom: 30px;
+            color: var(--ink);
+        }
+
+        .image-text p {
+            font-size: 1.1rem;
+            color: var(--ink);
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+
+        /* Books Section */
+        .books-section {
+            background: var(--ink);
+            color: var(--parchment);
+            flex-direction: column;
+            gap: 60px;
+        }
+
+        .books-header {
+            text-align: center;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .books-header.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .books-header h2 {
+            font-family: 'Libre Baskerville', serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 400;
+            margin-bottom: 20px;
+        }
+
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            max-width: 1200px;
+        }
+
+        .book-card {
+            background: rgba(255,255,255,0.03);
+            padding: 40px;
+            border: 1px solid rgba(201, 169, 89, 0.2);
+            text-align: center;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease;
+        }
+
+        .book-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .book-card:nth-child(2) { transition-delay: 0.2s; }
+        .book-card:nth-child(3) { transition-delay: 0.4s; }
+
+        .book-card .year {
+            font-size: 0.8rem;
+            letter-spacing: 0.2em;
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
+
+        .book-card h3 {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin-bottom: 15px;
+        }
+
+        .book-card p {
+            font-size: 1rem;
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        /* Closing Section */
+        .closing-section {
+            background: linear-gradient(180deg, var(--ink) 0%, #0d0d1a 100%);
+            color: var(--parchment);
+            text-align: center;
+        }
+
+        .closing-content {
+            max-width: 600px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s ease;
+        }
+
+        .closing-content.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .closing-content .signature {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 2.5rem;
+            font-style: italic;
+            color: var(--gold);
+            margin-bottom: 30px;
+        }
+
+        .closing-content p {
+            font-size: 1.2rem;
+            line-height: 2;
+            opacity: 0.8;
+        }
+
+        /* Footer */
+        footer {
+            background: #0a0a12;
+            color: var(--parchment);
+            padding: 80px 50px;
+            text-align: center;
+        }
+
+        footer .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        footer h4 {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin-bottom: 30px;
+            color: var(--gold);
+        }
+
+        footer .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        footer .social-links a {
+            color: var(--parchment);
+            text-decoration: none;
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+
+        footer .social-links a:hover {
+            opacity: 1;
+            color: var(--gold);
+        }
+
+        footer .copyright {
+            font-size: 0.8rem;
+            opacity: 0.4;
+            letter-spacing: 0.1em;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .pen-body-container.opened {
+                transform: translate(calc(-50% - 40vw), -50%);
+            }
+            .pen-cap-container.opened {
+                transform: translate(calc(-50% + 35vw), -50%);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .pen-body,
+            .pen-cap {
+                transform: scale(0.7);
+            }
+            
+            .pen-body-container.opened {
+                transform: translate(calc(-50% - 38vw), -50%);
+            }
+            .pen-cap-container.opened {
+                transform: translate(calc(-50% + 32vw), -50%);
+            }
+
+            .image-section {
+                grid-template-columns: 1fr;
+                gap: 50px;
+                padding: 50px 30px;
+            }
+
+            .books-grid {
+                grid-template-columns: 1fr;
+                padding: 0 30px;
+            }
+
+            .section {
+                padding: 80px 30px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .pen-body,
+            .pen-cap {
+                transform: scale(0.5);
+            }
+            
+            .pen-body-container.opened {
+                transform: translate(-100%, -50%);
+            }
+            .pen-cap-container.opened {
+                transform: translate(10%, -50%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <!-- Audio elements for pen sounds -->
+    <audio id="penOpenSound" preload="auto">
+        <source src="Pen_open.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="penCloseSound" preload="auto">
+        <source src="Pen_close.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Pen Body with Nib (left side - moves further left when open) -->
+    <div class="pen-body-container" id="penBody">
+        <div class="pen-body">
+            <div class="pen-barrel"></div>
+            <div class="pen-band"></div>
+            <div class="pen-grip"></div>
+            <div class="pen-nib-wrapper">
+                <div class="pen-nib"></div>
+                <div class="ink-drop"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pen Cap (right side - covers nib when closed, moves right when open) -->
+    <div class="pen-cap-container" id="penCap">
+        <div class="pen-cap"></div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="section hero" id="hero">
+        <div class="hero-content">
+            <h1>Elena Vance</h1>
+            <p class="tagline">Words that linger, stories that remain</p>
+        </div>
+        <div class="scroll-hint">
+            <span>Scroll to discover</span>
+            <div class="arrow"></div>
+        </div>
+    </section>
+
+    <!-- Story Beginning -->
+    <section class="section story-section" id="story1">
+        <div class="story-content" data-animate>
+            <div class="chapter">Chapter One</div>
+            <h2>The Beginning of Words</h2>
+            <p>In the quiet corners of a small coastal town, Elena Vance discovered the power of storytelling. At seven years old, she wrote her first poem on the back of a grocery receipt, words tumbling out like waves upon the shore.</p>
+            <p>The sea became her first muse, its rhythms teaching her the cadence of prose, its depths inspiring tales of mystery and wonder.</p>
+            <div class="quote">"Every story begins with a single word, every journey with a single step into the unknown."</div>
+        </div>
+    </section>
+
+    <!-- Image Section -->
+    <section class="section image-section" id="portrait">
+        <div class="image-placeholder"></div>
+        <div class="image-text" data-animate>
+            <h3>A Voice Finds Its Echo</h3>
+            <p>After years of quiet writing in attic rooms and borrowed libraries, Elena's manuscript found its way to a publisher's desk in 1998.</p>
+            <p>"The Lighthouse Keeper's Daughter" became an instant sensation, its lyrical prose capturing hearts across continents.</p>
+            <p>Critics called it "a masterwork of emotional depth," and readers found in it a mirror to their own unspoken longings.</p>
+        </div>
+    </section>
+
+    <!-- Story Middle -->
+    <section class="section story-section" id="story2">
+        <div class="story-content" data-animate>
+            <div class="chapter">Chapter Two</div>
+            <h2>The Craft of Silence</h2>
+            <p>Between novels, Elena retreated. Not from writing, but into it—deeper, further, exploring the spaces between words where meaning truly lives.</p>
+            <p>She spent three years in Provence, learning that sometimes the most powerful stories are the ones we don't tell, the pauses that make the music.</p>
+            <div class="quote">"I write not to fill silence, but to give it shape."</div>
+        </div>
+    </section>
+
+    <!-- Books Section -->
+    <section class="section books-section" id="books">
+        <div class="books-header" data-animate>
+            <h2>Selected Works</h2>
+        </div>
+        <div class="books-grid">
+            <div class="book-card" data-animate>
+                <div class="year">1998</div>
+                <h3>The Lighthouse Keeper's Daughter</h3>
+                <p>A debut that changed everything</p>
+            </div>
+            <div class="book-card" data-animate>
+                <div class="year">2004</div>
+                <h3>Letters to November</h3>
+                <p>An epistolary journey through loss</p>
+            </div>
+            <div class="book-card" data-animate>
+                <div class="year">2012</div>
+                <h3>The Silence Between</h3>
+                <p>Her magnum opus on memory</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Story End -->
+    <section class="section story-section" id="story3">
+        <div class="story-content" data-animate>
+            <div class="chapter">Chapter Three</div>
+            <h2>The Ink Never Dries</h2>
+            <p>Today, Elena continues to write from her cottage overlooking the same sea that inspired her first words. Each morning, she uncaps her pen—the same fountain pen her grandmother gave her at sixteen.</p>
+            <p>New stories emerge, each one a conversation between the woman she was and the writer she has become.</p>
+            <div class="quote">"The pen never truly closes. It only rests, waiting for the next story to begin."</div>
+        </div>
+    </section>
+
+    <!-- Closing Section -->
+    <section class="section closing-section" id="closing">
+        <div class="closing-content" data-animate>
+            <div class="signature">Elena Vance</div>
+            <p>Thank you for reading my story. The greatest gift a writer can receive is a reader who truly sees. I hope my words have found a home in you.</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <h4>Continue the Journey</h4>
+            <div class="social-links">
+                <a href="#">Newsletter</a>
+                <a href="#">Publications</a>
+                <a href="#">Speaking</a>
+                <a href="#">Contact</a>
+            </div>
+            <p class="copyright">© 2024 Elena Vance. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const scrollProgress = document.getElementById('scrollProgress');
+        const penCap = document.getElementById('penCap');
+        const penBody = document.getElementById('penBody');
+        const hero = document.getElementById('hero');
+        const closing = document.getElementById('closing');
+        
+        // Audio elements
+        const penOpenSound = document.getElementById('penOpenSound');
+        const penCloseSound = document.getElementById('penCloseSound');
+        
+        // Track pen state to trigger sounds only on change
+        let penIsOpen = false;
+        let soundEnabled = false;
+
+        // Enable sound on first user interaction
+        function enableSound() {
+            soundEnabled = true;
+            document.removeEventListener('click', enableSound);
+            document.removeEventListener('scroll', enableSound);
+        }
+        document.addEventListener('click', enableSound);
+        document.addEventListener('scroll', enableSound, { once: true });
+
+        function playSound(sound) {
+            if (!soundEnabled) return;
+            sound.currentTime = 0;
+            sound.play().catch(() => {});
+        }
+
+        function getScrollPercent() {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            return (scrollTop / docHeight) * 100;
+        }
+
+        function updatePenState() {
+            const scrollTop = window.scrollY;
+            const windowHeight = window.innerHeight;
+            
+            const heroBottom = hero.offsetTop + hero.offsetHeight;
+            const closingTop = closing.offsetTop;
+            
+            // Scroll progress bar
+            const percent = getScrollPercent();
+            scrollProgress.style.width = percent + '%';
+
+            // Define transition points
+            const openStart = heroBottom - windowHeight * 0.7;
+            const closeStart = closingTop - windowHeight;
+            const closeEnd = closingTop - windowHeight * 0.3;
+
+            let shouldBeOpen = false;
+
+            if (scrollTop < openStart) {
+                // Hero - pen closed (cap covering nib)
+                penCap.classList.remove('opened', 'hidden');
+                penBody.classList.remove('opened', 'hidden');
+                shouldBeOpen = false;
+            } else if (scrollTop >= openStart && scrollTop < closeStart) {
+                // Story sections - pen open (body left, cap right)
+                penCap.classList.add('opened');
+                penBody.classList.add('opened');
+                penCap.classList.remove('hidden');
+                penBody.classList.remove('hidden');
+                shouldBeOpen = true;
+            } else if (scrollTop >= closeStart && scrollTop < closeEnd) {
+                // Approaching closing - pen closing (cap slides back over nib)
+                penCap.classList.remove('opened');
+                penBody.classList.remove('opened');
+                penCap.classList.remove('hidden');
+                penBody.classList.remove('hidden');
+                shouldBeOpen = false;
+            } else {
+                // Footer - pen fades away
+                penCap.classList.remove('opened');
+                penBody.classList.remove('opened');
+                penCap.classList.add('hidden');
+                penBody.classList.add('hidden');
+                shouldBeOpen = false;
+            }
+
+            // Play sound only when state changes
+            if (shouldBeOpen && !penIsOpen) {
+                playSound(penOpenSound);
+            } else if (!shouldBeOpen && penIsOpen) {
+                playSound(penCloseSound);
+            }
+            penIsOpen = shouldBeOpen;
+        }
+
+        // Intersection Observer for content animations
+        const observerOptions = {
+            threshold: 0.3,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('[data-animate]').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Throttled scroll
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    updatePenState();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
+
+        // Initial state
+        updatePenState();
+    </script>
+</body>
+</html>
