@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flux — Workflow Automation for Modern Teams</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=General+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/4.0.1/simplex-noise.min.js"></script>
+    <style>
+        @font-face { font-family: 'General Sans'; src: local('General Sans'); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #09090b;
+            --bg-secondary: #18181b;
+            --bg-tertiary: #27272a;
+            --bg-card: rgba(255, 255, 255, 0.02);
+            --bg-card-hover: rgba(255, 255, 255, 0.05);
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent-lime: #d9f99d;
+            --accent-lime-dark: #a3e635;
+            --accent-cyan: #22d3ee;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-medium: rgba(255, 255, 255, 0.1);
+            --gradient-lime: linear-gradient(135deg, #d9f99d 0%, #a3e635 100%);
+            --gradient-glow: radial-gradient(ellipse at center, rgba(217, 249, 157, 0.15) 0%, transparent 70%);
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'General Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.6; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+        /* Navigation */
+        .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 20px 0; background: rgba(9, 9, 11, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-subtle); }
+        .nav-inner { display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .logo-mark { width: 36px; height: 36px; background: var(--gradient-lime); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.25rem; color: var(--bg-primary); }
+        .logo-text { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.35rem; color: var(--text-primary); letter-spacing: -0.02em; }
+        .nav-links { display: flex; align-items: center; gap: 40px; list-style: none; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.3s ease; }
+        .nav-links a:hover { color: var(--text-primary); }
+        .nav-cta { display: flex; align-items: center; gap: 16px; }
+        .btn { padding: 12px 24px; border-radius: 10px; font-family: 'General Sans', sans-serif; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: all 0.3s ease; cursor: pointer; border: none; }
+        .btn-ghost { background: transparent; color: var(--text-secondary); }
+        .btn-ghost:hover { color: var(--text-primary); }
+        .btn-primary { background: var(--gradient-lime); color: var(--bg-primary); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(217, 249, 157, 0.3); }
+        .btn-secondary { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-medium); }
+        .btn-secondary:hover { background: var(--bg-card-hover); border-color: var(--accent-lime); }
+        .btn-large { padding: 16px 32px; font-size: 1rem; }
+        .nav-toggle { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 5px; }
+        .nav-toggle span { width: 24px; height: 2px; background: var(--text-primary); transition: all 0.3s ease; }
+
+        /* Hero with Waves */
+        .hero { min-height: 100vh; display: flex; align-items: center; padding: 140px 0 100px; position: relative; overflow: hidden; }
+        .waves-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; --x: -0.5rem; --y: 50%; }
+        .waves-container svg { display: block; width: 100%; height: 100%; }
+        .pointer-dot { position: absolute; top: 0; left: 0; width: 0.5rem; height: 0.5rem; background: var(--accent-lime); border-radius: 50%; transform: translate3d(calc(var(--x) - 50%), calc(var(--y) - 50%), 0); will-change: transform; box-shadow: 0 0 20px var(--accent-lime), 0 0 40px var(--accent-lime-dark); }
+        .hero-gradient-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at 50% 30%, rgba(217, 249, 157, 0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 70%, rgba(34, 211, 238, 0.05) 0%, transparent 40%), linear-gradient(180deg, rgba(9, 9, 11, 0.2) 0%, rgba(9, 9, 11, 0.7) 100%); pointer-events: none; z-index: 1; }
+        .hero-noise { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"); opacity: 0.08; pointer-events: none; z-index: 2; mix-blend-mode: overlay; }
+        .hero-content { position: relative; z-index: 2; text-align: center; max-width: 900px; margin: 0 auto; }
+        .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px 8px 8px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 100px; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 32px; animation: fadeInUp 0.8s ease forwards; }
+        .hero-badge-dot { width: 8px; height: 8px; background: var(--accent-lime); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.2); } }
+        .hero-title { font-family: 'Syne', sans-serif; font-size: clamp(3rem, 8vw, 5.5rem); font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; margin-bottom: 28px; animation: fadeInUp 0.8s ease 0.1s forwards; opacity: 0; }
+        .hero-title .highlight { background: var(--gradient-lime); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero-subtitle { font-size: 1.25rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto 40px; animation: fadeInUp 0.8s ease 0.2s forwards; opacity: 0; }
+        .hero-cta { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; animation: fadeInUp 0.8s ease 0.3s forwards; opacity: 0; }
+        .hero-stats { display: flex; justify-content: center; gap: 60px; margin-top: 80px; padding-top: 40px; border-top: 1px solid var(--border-subtle); animation: fadeInUp 0.8s ease 0.4s forwards; opacity: 0; }
+        .stat { text-align: center; }
+        .stat-value { font-family: 'Syne', sans-serif; font-size: 2.5rem; font-weight: 700; color: var(--accent-lime); letter-spacing: -0.02em; }
+        .stat-label { font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Logos */
+        .logos { padding: 80px 0; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); }
+        .logos-title { text-align: center; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 40px; }
+        .logos-grid { display: flex; justify-content: center; align-items: center; gap: 60px; flex-wrap: wrap; opacity: 0.5; }
+        .logo-item { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--text-secondary); letter-spacing: -0.02em; }
+
+        /* Features */
+        .features { padding: 140px 0; position: relative; }
+        .section-header { text-align: center; max-width: 700px; margin: 0 auto 80px; }
+        .section-tag { display: inline-block; padding: 6px 14px; background: rgba(217, 249, 157, 0.1); border: 1px solid rgba(217, 249, 157, 0.2); border-radius: 100px; font-size: 0.8rem; font-weight: 600; color: var(--accent-lime); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 20px; }
+        .section-title { font-family: 'Syne', sans-serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 20px; }
+        .section-subtitle { font-size: 1.1rem; color: var(--text-secondary); }
+        .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .feature-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 36px; transition: all 0.4s ease; position: relative; overflow: hidden; }
+        .feature-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent-lime), transparent); opacity: 0; transition: opacity 0.4s ease; }
+        .feature-card:hover { background: var(--bg-card-hover); transform: translateY(-4px); }
+        .feature-card:hover::before { opacity: 1; }
+        .feature-icon { width: 56px; height: 56px; background: rgba(217, 249, 157, 0.1); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; margin-bottom: 24px; }
+        .feature-title { font-family: 'Syne', sans-serif; font-size: 1.25rem; font-weight: 600; margin-bottom: 12px; letter-spacing: -0.01em; }
+        .feature-desc { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.7; }
+
+        /* How it Works */
+        .how-it-works { padding: 140px 0; background: var(--bg-secondary); }
+        .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; position: relative; }
+        .steps-grid::before { content: ''; position: absolute; top: 50px; left: 16.66%; right: 16.66%; height: 2px; background: linear-gradient(90deg, var(--accent-lime), var(--accent-cyan)); opacity: 0.3; }
+        .step { text-align: center; position: relative; }
+        .step-number { width: 100px; height: 100px; background: var(--bg-primary); border: 2px solid var(--border-medium); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 2.5rem; font-weight: 700; color: var(--accent-lime); margin: 0 auto 28px; transition: all 0.4s ease; }
+        .step:hover .step-number { border-color: var(--accent-lime); box-shadow: 0 0 40px rgba(217, 249, 157, 0.2); }
+        .step-title { font-family: 'Syne', sans-serif; font-size: 1.35rem; font-weight: 600; margin-bottom: 12px; letter-spacing: -0.01em; }
+        .step-desc { font-size: 0.95rem; color: var(--text-secondary); max-width: 280px; margin: 0 auto; }
+
+        /* Stagger Testimonials */
+        .testimonials { padding: 140px 0; position: relative; overflow: hidden; background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%); }
+        .testimonials-carousel { position: relative; width: 100%; height: 550px; overflow: hidden; }
+        .testimonial-card { position: absolute; left: 50%; top: 50%; cursor: pointer; padding: 2rem; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease, box-shadow 0.6s ease, background 0.3s ease; clip-path: polygon(50px 0%, calc(100% - 50px) 0%, 100% 50px, 100% 100%, calc(100% - 50px) 100%, 50px 100%, 0 100%, 0 0); }
+        .testimonial-card.center { z-index: 10; background: var(--gradient-lime); }
+        .testimonial-card.side { z-index: 0; background: var(--bg-card); border: 1px solid var(--border-subtle); }
+        .testimonial-card.side:hover { border-color: rgba(217, 249, 157, 0.3); }
+        .testimonial-card::before { content: ''; position: absolute; right: -1px; top: 48px; width: 71px; height: 2px; background: var(--border-subtle); transform-origin: top right; transform: rotate(45deg); }
+        .testimonial-card.center::before { background: rgba(9, 9, 11, 0.2); }
+        .testimonial-avatar { width: 48px; height: 56px; object-fit: cover; object-position: top; margin-bottom: 1rem; background: var(--bg-tertiary); box-shadow: 3px 3px 0px var(--bg-primary); }
+        .testimonial-quote { font-size: 1.05rem; font-weight: 500; line-height: 1.6; margin-bottom: 1rem; }
+        .testimonial-card.center .testimonial-quote { color: var(--bg-primary); }
+        .testimonial-card.side .testimonial-quote { color: var(--text-primary); }
+        .testimonial-author { position: absolute; bottom: 2rem; left: 2rem; right: 2rem; font-size: 0.85rem; font-style: italic; }
+        .testimonial-card.center .testimonial-author { color: rgba(9, 9, 11, 0.6); }
+        .testimonial-card.side .testimonial-author { color: var(--text-muted); }
+        .carousel-controls { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); display: flex; gap: 0.5rem; z-index: 20; }
+        .carousel-btn { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; background: var(--bg-card); border: 2px solid var(--border-subtle); color: var(--text-primary); font-size: 1.5rem; cursor: pointer; transition: all 0.3s ease; }
+        .carousel-btn:hover { background: var(--gradient-lime); color: var(--bg-primary); border-color: transparent; }
+        .carousel-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(217, 249, 157, 0.3); }
+
+        /* Pricing */
+        .pricing { padding: 140px 0; background: var(--bg-secondary); }
+        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: start; }
+        .pricing-card { background: var(--bg-primary); border: 1px solid var(--border-subtle); border-radius: 24px; padding: 40px; transition: all 0.4s ease; }
+        .pricing-card:hover { transform: translateY(-4px); }
+        .pricing-card.popular { background: linear-gradient(180deg, rgba(217, 249, 157, 0.08) 0%, var(--bg-primary) 100%); border-color: rgba(217, 249, 157, 0.3); position: relative; }
+        .pricing-card.popular::before { content: 'Most Popular'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); padding: 6px 16px; background: var(--gradient-lime); border-radius: 100px; font-size: 0.75rem; font-weight: 600; color: var(--bg-primary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .pricing-name { font-family: 'Syne', sans-serif; font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; }
+        .pricing-desc { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 24px; }
+        .pricing-price { display: flex; align-items: baseline; gap: 4px; margin-bottom: 32px; }
+        .pricing-currency { font-size: 1.5rem; color: var(--text-secondary); }
+        .pricing-amount { font-family: 'Syne', sans-serif; font-size: 4rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+        .pricing-period { font-size: 1rem; color: var(--text-muted); }
+        .pricing-features { list-style: none; margin-bottom: 32px; }
+        .pricing-features li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border-subtle); font-size: 0.95rem; color: var(--text-secondary); }
+        .pricing-features li:last-child { border-bottom: none; }
+        .pricing-features li::before { content: '✓'; color: var(--accent-lime); font-weight: 600; }
+        .pricing-card .btn { width: 100%; text-align: center; }
+
+        /* Contact */
+        .contact { padding: 140px 0; position: relative; }
+        .contact-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+        .contact-content h2 { font-family: 'Syne', sans-serif; font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 20px; }
+        .contact-content p { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 40px; }
+        .contact-info { display: flex; flex-direction: column; gap: 20px; }
+        .contact-item { display: flex; align-items: center; gap: 16px; }
+        .contact-item-icon { width: 48px; height: 48px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+        .contact-item-text { color: var(--text-secondary); font-size: 1rem; }
+        .contact-form { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 24px; padding: 48px; }
+        .form-group { margin-bottom: 24px; }
+        .form-label { display: block; font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 10px; }
+        .form-input, .form-textarea { width: 100%; padding: 16px 20px; background: var(--bg-primary); border: 1px solid var(--border-medium); border-radius: 12px; color: var(--text-primary); font-family: 'General Sans', sans-serif; font-size: 1rem; transition: all 0.3s ease; }
+        .form-input:focus, .form-textarea:focus { outline: none; border-color: var(--accent-lime); box-shadow: 0 0 0 4px rgba(217, 249, 157, 0.1); }
+        .form-input::placeholder, .form-textarea::placeholder { color: var(--text-muted); }
+        .form-textarea { min-height: 140px; resize: vertical; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .contact-form .btn { width: 100%; }
+
+        /* Footer */
+        .footer { padding: 80px 0 40px; background: var(--bg-secondary); border-top: 1px solid var(--border-subtle); }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 60px; margin-bottom: 60px; }
+        .footer-brand p { color: var(--text-muted); font-size: 0.95rem; margin-top: 16px; max-width: 300px; }
+        .footer-col h4 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 600; margin-bottom: 20px; }
+        .footer-col ul { list-style: none; }
+        .footer-col li { margin-bottom: 12px; }
+        .footer-col a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.3s ease; }
+        .footer-col a:hover { color: var(--accent-lime); }
+        .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 40px; border-top: 1px solid var(--border-subtle); }
+        .footer-copyright { color: var(--text-muted); font-size: 0.9rem; }
+        .footer-socials { display: flex; gap: 20px; }
+        .footer-socials a { color: var(--text-muted); font-size: 1.25rem; transition: color 0.3s ease; }
+        .footer-socials a:hover { color: var(--accent-lime); }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .features-grid, .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+            .steps-grid { grid-template-columns: 1fr; gap: 60px; }
+            .steps-grid::before { display: none; }
+            .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 40px; }
+        }
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .nav-toggle { display: flex; }
+            .nav-cta .btn-ghost { display: none; }
+            .hero { padding: 120px 0 80px; }
+            .hero-stats { flex-direction: column; gap: 30px; }
+            .features-grid, .pricing-grid { grid-template-columns: 1fr; }
+            .testimonials-carousel { height: 500px; }
+            .carousel-btn { width: 48px; height: 48px; }
+            .contact-wrapper { grid-template-columns: 1fr; gap: 60px; }
+            .form-row { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr; gap: 40px; }
+            .footer-bottom { flex-direction: column; gap: 20px; text-align: center; }
+            .pricing-card.popular { order: -1; }
+        }
+        @media (max-width: 480px) {
+            .container { padding: 0 16px; }
+            .hero-cta { flex-direction: column; }
+            .hero-cta .btn { width: 100%; }
+            .logos-grid { gap: 30px; }
+            .contact-form { padding: 32px 24px; }
+        }
+        .reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container nav-inner">
+            <a href="#" class="logo">
+                <div class="logo-mark">F</div>
+                <span class="logo-text">Flux</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how-it-works">How it Works</a></li>
+                <li><a href="#testimonials">Testimonials</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+            </ul>
+            <div class="nav-cta">
+                <a href="#contact" class="btn btn-ghost">Contact</a>
+                <a href="#" class="btn btn-primary">Start Free Trial</a>
+            </div>
+            <button class="nav-toggle" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section with Waves Background -->
+    <section class="hero">
+        <div class="waves-container" id="wavesContainer">
+            <svg id="wavesSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+            <div class="pointer-dot"></div>
+        </div>
+        <div class="hero-gradient-overlay"></div>
+        <div class="hero-noise"></div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="hero-badge-dot"></span>
+                    Now with AI-powered automation
+                </div>
+                <h1 class="hero-title">Automate your<br><span class="highlight">workflows</span> in minutes</h1>
+                <p class="hero-subtitle">Connect your favorite tools, build powerful automations, and let Flux handle the repetitive work so your team can focus on what matters.</p>
+                <div class="hero-cta">
+                    <a href="#" class="btn btn-primary btn-large">Start Free Trial</a>
+                    <a href="#" class="btn btn-secondary btn-large">Watch Demo</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat"><div class="stat-value">10K+</div><div class="stat-label">Active Teams</div></div>
+                    <div class="stat"><div class="stat-value">50M+</div><div class="stat-label">Tasks Automated</div></div>
+                    <div class="stat"><div class="stat-value">99.9%</div><div class="stat-label">Uptime SLA</div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Logos Section -->
+    <section class="logos">
+        <div class="container">
+            <p class="logos-title">Trusted by teams at</p>
+            <div class="logos-grid">
+                <span class="logo-item">Stripe</span>
+                <span class="logo-item">Notion</span>
+                <span class="logo-item">Figma</span>
+                <span class="logo-item">Linear</span>
+                <span class="logo-item">Vercel</span>
+                <span class="logo-item">Raycast</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-tag">Features</span>
+                <h2 class="section-title">Everything you need to automate at scale</h2>
+                <p class="section-subtitle">Powerful features that help modern teams move faster and work smarter.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card reveal"><div class="feature-icon">⚡</div><h3 class="feature-title">Lightning Fast Setup</h3><p class="feature-desc">Get started in minutes with our intuitive drag-and-drop builder. No coding required.</p></div>
+                <div class="feature-card reveal"><div class="feature-icon">🔗</div><h3 class="feature-title">500+ Integrations</h3><p class="feature-desc">Connect with all your favorite tools including Slack, GitHub, Notion, and more.</p></div>
+                <div class="feature-card reveal"><div class="feature-icon">🤖</div><h3 class="feature-title">AI-Powered Logic</h3><p class="feature-desc">Let AI make smart decisions in your workflows with natural language conditions.</p></div>
+                <div class="feature-card reveal"><div class="feature-icon">📊</div><h3 class="feature-title">Real-time Analytics</h3><p class="feature-desc">Track performance, identify bottlenecks, and optimize your automations.</p></div>
+                <div class="feature-card reveal"><div class="feature-icon">🔒</div><h3 class="feature-title">Enterprise Security</h3><p class="feature-desc">SOC 2 compliant with SSO, audit logs, and role-based access control.</p></div>
+                <div class="feature-card reveal"><div class="feature-icon">🌍</div><h3 class="feature-title">Global Infrastructure</h3><p class="feature-desc">Deploy anywhere with our worldwide edge network for minimal latency.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-tag">How it Works</span>
+                <h2 class="section-title">Three steps to automation freedom</h2>
+                <p class="section-subtitle">Simple enough for anyone, powerful enough for any workflow.</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step reveal"><div class="step-number">1</div><h3 class="step-title">Connect Your Tools</h3><p class="step-desc">Link your existing apps and services with one-click OAuth authentication.</p></div>
+                <div class="step reveal"><div class="step-number">2</div><h3 class="step-title">Build Your Flow</h3><p class="step-desc">Use our visual builder or describe what you want in plain English.</p></div>
+                <div class="step reveal"><div class="step-number">3</div><h3 class="step-title">Activate & Relax</h3><p class="step-desc">Turn on your automation and watch the magic happen automatically.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials with Stagger Carousel -->
+    <section class="testimonials" id="testimonials">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-tag">Testimonials</span>
+                <h2 class="section-title">Loved by teams worldwide</h2>
+                <p class="section-subtitle">See what our customers have to say about their experience.</p>
+            </div>
+        </div>
+        <div class="testimonials-carousel" id="testimonialsCarousel"></div>
+        <div class="carousel-controls">
+            <button class="carousel-btn" id="prevBtn" aria-label="Previous testimonial">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <button class="carousel-btn" id="nextBtn" aria-label="Next testimonial">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-tag">Pricing</span>
+                <h2 class="section-title">Simple, transparent pricing</h2>
+                <p class="section-subtitle">Start free, scale as you grow. No hidden fees.</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card reveal">
+                    <h3 class="pricing-name">Starter</h3>
+                    <p class="pricing-desc">Perfect for small teams getting started</p>
+                    <div class="pricing-price"><span class="pricing-currency">$</span><span class="pricing-amount">0</span><span class="pricing-period">/month</span></div>
+                    <ul class="pricing-features"><li>Up to 500 tasks/month</li><li>5 active workflows</li><li>50+ integrations</li><li>Community support</li></ul>
+                    <a href="#" class="btn btn-secondary">Get Started</a>
+                </div>
+                <div class="pricing-card popular reveal">
+                    <h3 class="pricing-name">Pro</h3>
+                    <p class="pricing-desc">For growing teams that need more power</p>
+                    <div class="pricing-price"><span class="pricing-currency">$</span><span class="pricing-amount">29</span><span class="pricing-period">/month</span></div>
+                    <ul class="pricing-features"><li>Unlimited tasks</li><li>Unlimited workflows</li><li>500+ integrations</li><li>AI-powered automation</li><li>Priority support</li></ul>
+                    <a href="#" class="btn btn-primary">Start Free Trial</a>
+                </div>
+                <div class="pricing-card reveal">
+                    <h3 class="pricing-name">Enterprise</h3>
+                    <p class="pricing-desc">Custom solutions for large organizations</p>
+                    <div class="pricing-price"><span class="pricing-currency">$</span><span class="pricing-amount">99</span><span class="pricing-period">/month</span></div>
+                    <ul class="pricing-features"><li>Everything in Pro</li><li>SSO & SAML</li><li>Custom integrations</li><li>Dedicated account manager</li><li>99.99% SLA</li></ul>
+                    <a href="#contact" class="btn btn-secondary">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <div class="contact-wrapper">
+                <div class="contact-content reveal">
+                    <h2>Let's build something amazing together</h2>
+                    <p>Have questions about Flux? Want to see a custom demo? Our team is here to help you automate your way to success.</p>
+                    <div class="contact-info">
+                        <div class="contact-item"><div class="contact-item-icon">📧</div><span class="contact-item-text">hello@flux.io</span></div>
+                        <div class="contact-item"><div class="contact-item-icon">💬</div><span class="contact-item-text">Live chat available 24/7</span></div>
+                        <div class="contact-item"><div class="contact-item-icon">📍</div><span class="contact-item-text">San Francisco, CA</span></div>
+                    </div>
+                </div>
+                <form class="contact-form reveal">
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">First Name</label><input type="text" class="form-input" placeholder="John"></div>
+                        <div class="form-group"><label class="form-label">Last Name</label><input type="text" class="form-input" placeholder="Doe"></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" placeholder="john@company.com"></div>
+                    <div class="form-group"><label class="form-label">Company</label><input type="text" class="form-input" placeholder="Acme Inc."></div>
+                    <div class="form-group"><label class="form-label">Message</label><textarea class="form-textarea" placeholder="Tell us about your project..."></textarea></div>
+                    <button type="submit" class="btn btn-primary btn-large">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="#" class="logo"><div class="logo-mark">F</div><span class="logo-text">Flux</span></a>
+                    <p>Workflow automation for modern teams. Build powerful automations in minutes, not months.</p>
+                </div>
+                <div class="footer-col"><h4>Product</h4><ul><li><a href="#">Features</a></li><li><a href="#">Integrations</a></li><li><a href="#">Pricing</a></li><li><a href="#">Changelog</a></li></ul></div>
+                <div class="footer-col"><h4>Company</h4><ul><li><a href="#">About</a></li><li><a href="#">Blog</a></li><li><a href="#">Careers</a></li><li><a href="#">Contact</a></li></ul></div>
+                <div class="footer-col"><h4>Resources</h4><ul><li><a href="#">Documentation</a></li><li><a href="#">Help Center</a></li><li><a href="#">Community</a></li><li><a href="#">Status</a></li></ul></div>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-copyright">© 2025 Flux. All rights reserved.</p>
+                <div class="footer-socials"><a href="#" aria-label="Twitter">𝕏</a><a href="#" aria-label="GitHub">⌘</a><a href="#" aria-label="LinkedIn">in</a></div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    // WAVES BACKGROUND - ORGANIC FLOWING EFFECT
+    (function() {
+        const container = document.getElementById('wavesContainer');
+        const svg = document.getElementById('wavesSvg');
+        if (!container || !svg) return;
+        const mouse = { x: -1000, y: -1000, lx: 0, ly: 0, sx: 0, sy: 0, v: 0, vs: 0, a: 0, set: false };
+        let lines = [], paths = [], bounding = null, noise2D = null, rafId = null;
+        
+        // Create noise function
+        if (typeof createNoise2D !== 'undefined') { 
+            noise2D = createNoise2D(); 
+        } else { 
+            // Fallback noise
+            noise2D = (x, y) => {
+                const n = Math.sin(x * 1.5) * Math.cos(y * 1.5) + Math.sin(x * 0.5 + y * 0.5) * 0.5;
+                return n;
+            };
+        }
+        
+        function setSize() { 
+            bounding = container.getBoundingClientRect(); 
+            svg.setAttribute('width', bounding.width);
+            svg.setAttribute('height', bounding.height);
+            svg.style.width = bounding.width + 'px'; 
+            svg.style.height = bounding.height + 'px'; 
+        }
+        
+        function setLines() {
+            const { width, height } = bounding; 
+            lines = []; 
+            paths.forEach(p => p.remove()); 
+            paths = [];
+            
+            // More lines, closer together for denser effect
+            const xGap = 12;
+            const yGap = 6; // Smaller y gap for smoother curves
+            const totalLines = Math.ceil((width + 400) / xGap);
+            const totalPoints = Math.ceil((height + 100) / yGap);
+            const xStart = -200;
+            const yStart = -50;
+            
+            for (let i = 0; i < totalLines; i++) {
+                const points = [];
+                for (let j = 0; j < totalPoints; j++) { 
+                    points.push({ 
+                        x: xStart + xGap * i, 
+                        y: yStart + yGap * j, 
+                        originX: xStart + xGap * i,
+                        originY: yStart + yGap * j,
+                        wave: { x: 0, y: 0 }, 
+                        cursor: { x: 0, y: 0, vx: 0, vy: 0 } 
+                    }); 
+                }
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('fill', 'none'); 
+                path.setAttribute('stroke', 'rgba(255, 255, 255, 0.12)'); 
+                path.setAttribute('stroke-width', '1');
+                svg.appendChild(path); 
+                paths.push(path); 
+                lines.push(points);
+            }
+        }
+        
+        function updateMousePosition(x, y) {
+            if (!bounding) return;
+            mouse.x = x - bounding.left; 
+            mouse.y = y - bounding.top + window.scrollY;
+            if (!mouse.set) { 
+                mouse.sx = mouse.x; 
+                mouse.sy = mouse.y; 
+                mouse.lx = mouse.x; 
+                mouse.ly = mouse.y; 
+                mouse.set = true; 
+            }
+            container.style.setProperty('--x', mouse.sx + 'px'); 
+            container.style.setProperty('--y', mouse.sy + 'px');
+        }
+        
+        function movePoints(time) {
+            const t = time * 0.0003; // Slower, smoother animation
+            
+            lines.forEach((points, lineIndex) => {
+                points.forEach((p, pointIndex) => {
+                    // Create flowing wave motion
+                    const noiseX = p.originX * 0.003;
+                    const noiseY = p.originY * 0.003;
+                    
+                    // Multiple noise layers for organic movement
+                    const wave1 = noise2D(noiseX + t, noiseY + t * 0.5) * 30;
+                    const wave2 = noise2D(noiseX * 2 + t * 0.7, noiseY * 2) * 15;
+                    const wave3 = noise2D(noiseX * 0.5 + t * 0.3, noiseY * 0.5 + t * 0.2) * 20;
+                    
+                    // Combine waves for organic flow
+                    p.wave.x = wave1 + wave2 * 0.5;
+                    p.wave.y = wave3 * 0.3;
+                    
+                    // Mouse interaction - ripple effect
+                    const dx = p.originX + p.wave.x - mouse.sx;
+                    const dy = p.originY + p.wave.y - mouse.sy;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const maxDist = 200;
+                    
+                    if (dist < maxDist) {
+                        const force = (1 - dist / maxDist) * 40;
+                        const angle = Math.atan2(dy, dx);
+                        p.cursor.vx += Math.cos(angle) * force * 0.02;
+                        p.cursor.vy += Math.sin(angle) * force * 0.02;
+                    }
+                    
+                    // Apply velocity with damping
+                    p.cursor.vx *= 0.92;
+                    p.cursor.vy *= 0.92;
+                    p.cursor.x += p.cursor.vx;
+                    p.cursor.y += p.cursor.vy;
+                    
+                    // Spring back to origin
+                    p.cursor.x *= 0.96;
+                    p.cursor.y *= 0.96;
+                });
+            });
+        }
+        
+        function drawLines() {
+            lines.forEach((points, i) => {
+                if (points.length < 2 || !paths[i]) return;
+                
+                // Use quadratic curves for smoother lines
+                let d = 'M ' + (points[0].originX + points[0].wave.x + points[0].cursor.x) + ' ' + (points[0].originY + points[0].wave.y + points[0].cursor.y);
+                
+                for (let j = 1; j < points.length - 1; j++) {
+                    const p = points[j];
+                    const pNext = points[j + 1];
+                    const x = p.originX + p.wave.x + p.cursor.x;
+                    const y = p.originY + p.wave.y + p.cursor.y;
+                    const xNext = pNext.originX + pNext.wave.x + pNext.cursor.x;
+                    const yNext = pNext.originY + pNext.wave.y + pNext.cursor.y;
+                    
+                    // Quadratic bezier for smooth curves
+                    const xMid = (x + xNext) / 2;
+                    const yMid = (y + yNext) / 2;
+                    d += ' Q ' + x + ' ' + y + ' ' + xMid + ' ' + yMid;
+                }
+                
+                // Final point
+                const last = points[points.length - 1];
+                d += ' L ' + (last.originX + last.wave.x + last.cursor.x) + ' ' + (last.originY + last.wave.y + last.cursor.y);
+                
+                paths[i].setAttribute('d', d);
+            });
+        }
+        
+        function tick(time) {
+            mouse.sx += (mouse.x - mouse.sx) * 0.1; 
+            mouse.sy += (mouse.y - mouse.sy) * 0.1;
+            const dx = mouse.x - mouse.lx, dy = mouse.y - mouse.ly;
+            mouse.vs += (Math.hypot(dx, dy) - mouse.vs) * 0.1; 
+            mouse.vs = Math.min(100, mouse.vs);
+            mouse.lx = mouse.x; 
+            mouse.ly = mouse.y; 
+            mouse.a = Math.atan2(dy, dx);
+            container.style.setProperty('--x', mouse.sx + 'px'); 
+            container.style.setProperty('--y', mouse.sy + 'px');
+            movePoints(time); 
+            drawLines(); 
+            rafId = requestAnimationFrame(tick);
+        }
+        
+        setSize(); 
+        setLines(); 
+        rafId = requestAnimationFrame(tick);
+        
+        window.addEventListener('resize', () => { setSize(); setLines(); });
+        window.addEventListener('mousemove', e => updateMousePosition(e.pageX, e.pageY));
+        container.addEventListener('touchmove', e => { 
+            e.preventDefault(); 
+            updateMousePosition(e.touches[0].clientX, e.touches[0].clientY); 
+        }, { passive: false });
+    })();
+
+    // STAGGER TESTIMONIALS - SMOOTH INFINITE CAROUSEL
+    (function() {
+        const testimonials = [
+            { quote: "Flux has completely transformed how our team handles repetitive tasks. We've saved over 20 hours per week since implementing it.", author: "Sarah Kim, Head of Operations at TechCorp", img: "https://i.pravatar.cc/150?img=1" },
+            { quote: "The AI features are incredible. I just describe what I want in plain English and Flux builds the automation for me. It feels like magic.", author: "Marcus Rodriguez, Founder at StartupLabs", img: "https://i.pravatar.cc/150?img=2" },
+            { quote: "Best automation tool we've used. The integrations just work, the UI is beautiful, and their support team is incredibly responsive.", author: "Emily Watson, Engineering Lead at DataFlow", img: "https://i.pravatar.cc/150?img=3" },
+            { quote: "We tried many solutions, but Flux stands out in terms of reliability and performance. Truly enterprise-grade.", author: "David Chen, CTO at ScaleUp", img: "https://i.pravatar.cc/150?img=4" },
+            { quote: "The ROI we've seen with Flux is incredible. It's paid for itself many times over in just the first month.", author: "Lisa Park, VP Operations at GrowthCo", img: "https://i.pravatar.cc/150?img=5" },
+            { quote: "I've been searching for a solution like Flux for years. So glad I finally found one that actually delivers.", author: "James Wilson, Product Lead at InnoTech", img: "https://i.pravatar.cc/150?img=6" },
+            { quote: "It's so simple and intuitive, we got the entire team up to speed in under 10 minutes. Incredible onboarding.", author: "Nina Patel, HR Director at TalentForge", img: "https://i.pravatar.cc/150?img=7" },
+            { quote: "Flux's customer support is unparalleled. They're always there when we need them, 24/7.", author: "Alex Rivera, Customer Success at ClientCare", img: "https://i.pravatar.cc/150?img=8" },
+            { quote: "Switching to Flux was the best decision we made this year. Productivity is through the roof.", author: "Chris Thompson, COO at Momentum", img: "https://i.pravatar.cc/150?img=9" },
+            { quote: "The workflow templates saved us weeks of setup time. We were automating on day one.", author: "Rachel Green, PM at LaunchPad", img: "https://i.pravatar.cc/150?img=10" },
+            { quote: "Finally, an automation tool that actually understands enterprise needs. Security and scale built in.", author: "Michael Torres, CIO at SecureFlow", img: "https://i.pravatar.cc/150?img=11" },
+            { quote: "Our team loves the intuitive interface. Training time dropped from days to hours.", author: "Amanda Lee, Training Lead at EduTech", img: "https://i.pravatar.cc/150?img=12" }
+        ];
+        
+        const carousel = document.getElementById('testimonialsCarousel');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        if (!carousel || !prevBtn || !nextBtn) return;
+        
+        let cardSize = window.innerWidth >= 640 ? 365 : 290;
+        let currentIndex = 0;
+        let previousIndex = 0;
+        let isAnimating = false;
+        const cards = [];
+        const total = testimonials.length;
+        const cardPositions = []; // Track previous positions
+        
+        function createCards() {
+            carousel.innerHTML = '';
+            testimonials.forEach((t, i) => {
+                const card = document.createElement('div');
+                card.className = 'testimonial-card side';
+                card.style.width = cardSize + 'px';
+                card.style.height = cardSize + 'px';
+                card.innerHTML = '<img class="testimonial-avatar" src="' + t.img + '" alt="' + t.author.split(',')[0] + '"><p class="testimonial-quote">"' + t.quote + '"</p><p class="testimonial-author">— ' + t.author + '</p>';
+                carousel.appendChild(card);
+                cards.push(card);
+                cardPositions.push(0);
+            });
+            updatePositions(false);
+        }
+        
+        function getRelativePosition(index) {
+            let diff = index - currentIndex;
+            if (diff > total / 2) diff -= total;
+            if (diff < -total / 2) diff += total;
+            return diff;
+        }
+        
+        function updatePositions(animate) {
+            const cardSpacing = cardSize / 1.5;
+            
+            cards.forEach((card, i) => {
+                const pos = getRelativePosition(i);
+                const prevPos = cardPositions[i];
+                const isCenter = pos === 0;
+                const absPos = Math.abs(pos);
+                
+                // Check if this card is wrapping around (jumping from one side to the other)
+                const isWrapping = Math.abs(pos - prevPos) > total / 2;
+                
+                // Disable transition for wrapping cards
+                if (isWrapping || !animate) {
+                    card.style.transition = 'none';
+                } else {
+                    card.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s ease';
+                }
+                
+                const translateX = cardSpacing * pos;
+                const translateY = isCenter ? -65 : (pos % 2 !== 0 ? 15 : -15);
+                const rotate = isCenter ? 0 : (pos % 2 !== 0 ? 2.5 : -2.5);
+                const scale = isCenter ? 1 : Math.max(0.9, 1 - absPos * 0.02);
+                const zIndex = 20 - absPos;
+                
+                // Hide cards that are far from center
+                const opacity = absPos > 5 ? 0 : 1;
+                
+                card.style.transform = 'translate(-50%, -50%) translateX(' + translateX + 'px) translateY(' + translateY + 'px) rotate(' + rotate + 'deg) scale(' + scale + ')';
+                card.style.opacity = opacity;
+                card.style.zIndex = zIndex;
+                card.style.boxShadow = isCenter ? '0px 8px 0px 4px rgba(255, 255, 255, 0.06)' : 'none';
+                
+                card.classList.remove('center', 'side');
+                card.classList.add(isCenter ? 'center' : 'side');
+                
+                // Store current position for next comparison
+                cardPositions[i] = pos;
+            });
+        }
+        
+        function handleMove(direction) {
+            if (isAnimating) return;
+            isAnimating = true;
+            
+            previousIndex = currentIndex;
+            currentIndex = (currentIndex + direction + total) % total;
+            updatePositions(true);
+            
+            setTimeout(() => { isAnimating = false; }, 550);
+        }
+        
+        carousel.addEventListener('click', (e) => {
+            const card = e.target.closest('.testimonial-card');
+            if (!card || isAnimating) return;
+            
+            const cardIndex = cards.indexOf(card);
+            const pos = getRelativePosition(cardIndex);
+            
+            if (pos !== 0) {
+                handleMove(pos > 0 ? 1 : -1);
+            }
+        });
+        
+        prevBtn.onclick = () => handleMove(-1);
+        nextBtn.onclick = () => handleMove(1);
+        
+        window.addEventListener('resize', () => {
+            cardSize = window.innerWidth >= 640 ? 365 : 290;
+            cards.forEach(card => {
+                card.style.width = cardSize + 'px';
+                card.style.height = cardSize + 'px';
+            });
+            updatePositions(false);
+        });
+        
+        createCards();
+    })();
+
+    // SCROLL REVEAL & INTERACTIONS
+    const revealElements = document.querySelectorAll('.reveal');
+    const revealOnScroll = () => { revealElements.forEach(el => { if (el.getBoundingClientRect().top < window.innerHeight - 100) el.classList.add('visible'); }); };
+    window.addEventListener('scroll', revealOnScroll);
+    revealOnScroll();
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+    document.querySelector('.contact-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        alert('Thanks for your message! This is a demo, but in production this would send your inquiry to our team.');
+    });
+    const nav = document.querySelector('.nav');
+    window.addEventListener('scroll', () => { nav.style.background = window.scrollY > 50 ? 'rgba(9, 9, 11, 0.95)' : 'rgba(9, 9, 11, 0.8)'; });
+    </script>
+</body>
+</html>
