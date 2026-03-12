@@ -494,6 +494,9 @@
             background: var(--bg-surface);
             border-top: 1px solid var(--border-subtle);
             border-bottom: 1px solid var(--border-subtle);
+            border-radius: 24px; 
+            border: 1px solid var(--border-subtle);
+            margin: 0 3rem;
         }
 
         .about-grid {
@@ -535,7 +538,14 @@
             align-items: center;
             gap: 0.75rem;
             transition: all 0.3s ease;
+            min-width: 0;
         }
+
+        .skill-item span {
+            flex: 1;
+            min-width: 0;
+        }
+
 
         .skill-item:hover {
             border-color: var(--accent-primary);
@@ -545,6 +555,7 @@
         .skill-icon {
             width: 32px;
             height: 32px;
+            flex-shrink: 0;
             background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
             border-radius: 8px;
             display: flex;
