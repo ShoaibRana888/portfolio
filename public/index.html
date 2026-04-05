@@ -1109,42 +1109,91 @@ from concept to deployment.
 
         <div class="projects-grid">
 
-            <!-- Eventix - Event Booking System -->
+            <!-- ════════════════════════════════════════════
+                 EVENTIX — updated card with salon module
+                 ════════════════════════════════════════════ -->
             <article class="project-card featured fade-in">
+ 
+                <!-- Split preview: Events | Salon -->
                 <div class="project-preview" style="position:relative;">
-                    <div id="eventix-fallback" style="position:absolute;inset:0;background:linear-gradient(135deg,#0a0a0f 0%,#1a1a24 100%);display:flex;align-items:center;justify-content:center;z-index:2;transition:opacity 0.6s ease;">
-                        <div style="text-align:center;padding:3rem;">
-                            <div style="font-size:4rem;margin-bottom:1rem;">🎫</div>
-                            <div style="font-family:'Syne',sans-serif;font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.5rem;">EVENTIX</div>
-                            <div style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:2rem;">Premium Event Booking</div>
-                            <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
-                                <div style="background:var(--bg-elevated);padding:1rem 1.5rem;border-radius:12px;border:1px solid var(--border-subtle);">
-                                    <div style="font-size:1.5rem;font-weight:700;color:#10b981;">300+</div>
-                                    <div style="font-size:0.75rem;color:var(--text-muted);">Seats/Venue</div>
+ 
+                    <!-- Lazy-load iframe fallback -->
+                    <div id="eventix-fallback" style="position:absolute;inset:0;z-index:2;transition:opacity 0.6s ease;">
+                        <div class="split-preview">
+ 
+                            <!-- Events pane -->
+                            <div class="split-pane events-pane">
+                                <div class="split-pane-label">Events Module</div>
+                                <div class="split-module-name">EVENTIX</div>
+                                <div class="split-stats">
+                                    <div class="split-stat-row">
+                                        <span class="split-stat-label">Venues</span>
+                                        <span class="split-stat-val">3</span>
+                                    </div>
+                                    <div class="split-stat-row">
+                                        <span class="split-stat-label">Seats / Venue</span>
+                                        <span class="split-stat-val">300–500</span>
+                                    </div>
+                                    <div class="split-stat-row">
+                                        <span class="split-stat-label">Pricing Tiers</span>
+                                        <span class="split-stat-val">VIP · Prem · Std</span>
+                                    </div>
+                                    <div class="split-stat-row">
+                                        <span class="split-stat-label">Lock Duration</span>
+                                        <span class="split-stat-val">10 min</span>
+                                    </div>
                                 </div>
-                                <div style="background:var(--bg-elevated);padding:1rem 1.5rem;border-radius:12px;border:1px solid var(--border-subtle);">
-                                    <div style="font-size:1.5rem;font-weight:700;color:#6366f1;">Real-time</div>
-                                    <div style="font-size:0.75rem;color:var(--text-muted);">Seat Locking</div>
-                                </div>
-                                <div style="background:var(--bg-elevated);padding:1rem 1.5rem;border-radius:12px;border:1px solid var(--border-subtle);">
-                                    <div style="font-size:1.5rem;font-weight:700;color:#ec4899;">QR</div>
-                                    <div style="font-size:0.75rem;color:var(--text-muted);">E-Tickets</div>
+                                <div class="split-badge">
+                                    <span style="width:6px;height:6px;background:#818cf8;border-radius:50%;display:inline-block;animation:pulse 1.6s infinite;"></span>
+                                    Real-time Seat Locking
                                 </div>
                             </div>
-                            <div style="margin-top:2rem;display:inline-flex;align-items:center;gap:0.5rem;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);border-radius:100px;padding:0.4rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:#a5b4fc;" id="eventix-wake-badge">
-                                <span style="width:6px;height:6px;background:#6366f1;border-radius:50%;animation:pulse 1.4s infinite;display:inline-block;"></span>
-                                Waking up server…
+ 
+                            <!-- Divider dot -->
+                            <div class="split-divider" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">+</div>
+ 
+                            <!-- Salon pane -->
+                            <div class="split-pane salon-pane">
+                                <div class="split-pane-label">Salon Module</div>
+                                <div class="split-module-name">LUMIÈRE</div>
+                                <div class="split-stats">
+                                    <div class="split-stat-row">
+                                        <span class="split-stat-label">Outlets</span>
+                                        <span class="split-stat-val">3 (Lahore)</span>
+                                    </div>
+                                    <div class="split-stat-row">
+                                        <span class="split-stat-label">Chairs / Outlet</span>
+                                        <span class="split-stat-val">10</span>
+                                    </div>
+                                    <div class="split-stat-row">
+                                        <span class="split-stat-label">Services</span>
+                                        <span class="split-stat-val">10 across 5 cats</span>
+                                    </div>
+                                    <div class="split-stat-row">
+                                        <span class="split-stat-label">Booking Flow</span>
+                                        <span class="split-stat-val">6-step wizard</span>
+                                    </div>
+                                </div>
+                                <div class="split-badge">
+                                    <span style="width:6px;height:6px;background:#ec4899;border-radius:50%;display:inline-block;animation:pulse 1.6s infinite;"></span>
+                                    Hourly Slot Booking
+                                </div>
                             </div>
+ 
                         </div>
                     </div>
+ 
+                    <!-- Actual iframe (lazy) -->
                     <iframe
                         id="eventix-iframe"
                         data-src="https://portfolio-wjt8.onrender.com"
-                        title="Eventix Event Booking System"
+                        title="Eventix — Event & Salon Booking Platform"
                         style="width:100%;height:100%;border:none;position:absolute;inset:0;opacity:0;z-index:1;transition:opacity 0.6s ease;">
                     </iframe>
                     <div class="preview-overlay"></div>
                 </div>
+ 
+                <!-- Info panel -->
                 <div class="project-info">
                     <div class="project-tags">
                         <span class="project-tag highlight">Full-Stack</span>
@@ -1152,33 +1201,45 @@ from concept to deployment.
                         <span class="project-tag">Express</span>
                         <span class="project-tag">SQLite</span>
                         <span class="project-tag">React</span>
+                        <span class="project-tag salon-tag">💆 Salon Booking</span>
                     </div>
-                    <h3 class="project-title">EVENTIX — Event Booking System</h3>
+ 
+                    <h3 class="project-title">EVENTIX — Booking Platform</h3>
+ 
                     <p class="project-description">
-                        A complete event ticketing platform with interactive seat selection, 
-                        real-time concurrency control to prevent double-booking, tiered pricing 
-                        (VIP/Premium/Standard), simulated payment processing, QR code ticket 
-                        generation, and a full admin dashboard with analytics.
+                        A full-stack booking platform with two distinct modules sharing the same 
+                        concurrency engine: an event ticketing system with interactive seat maps, 
+                        and a salon appointment system with outlet selection, time-slot availability, 
+                        and chair picking — all with real-time race condition protection, payment 
+                        simulation, and QR ticket generation.
                     </p>
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1rem 0;">
-                        <span style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted);">
-                            <span style="color: #10b981;">✓</span> Seat Locking System
-                        </span>
-                        <span style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted);">
-                            <span style="color: #10b981;">✓</span> Race Condition Handling
-                        </span>
-                        <span style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted);">
-                            <span style="color: #10b981;">✓</span> Admin Analytics
-                        </span>
-                        <span style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted);">
-                            <span style="color: #10b981;">✓</span> REST API
-                        </span>
+ 
+                    <!-- Feature groups -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:0.5rem 0;">
+ 
+                        <div class="feature-group">
+                            <div class="feature-group-label events-label">🎫 Events</div>
+                            <div class="feature-item"><span class="check-events">✓</span> Visual seat map (VIP / Premium / Std)</div>
+                            <div class="feature-item"><span class="check-events">✓</span> Row-level seat locking</div>
+                            <div class="feature-item"><span class="check-events">✓</span> Race condition prevention</div>
+                            <div class="feature-item"><span class="check-events">✓</span> Admin analytics dashboard</div>
+                            <div class="feature-item"><span class="check-events">✓</span> QR e-ticket generation</div>
+                        </div>
+ 
+                        <div class="feature-group">
+                            <div class="feature-group-label salon-label">💆 Salon</div>
+                            <div class="feature-item"><span class="check-salon">✓</span> 3 outlets, 10 chairs each</div>
+                            <div class="feature-item"><span class="check-salon">✓</span> Hourly slot availability</div>
+                            <div class="feature-item"><span class="check-salon">✓</span> 6-step booking wizard</div>
+                            <div class="feature-item"><span class="check-salon">✓</span> 10 services across 5 categories</div>
+                            <div class="feature-item"><span class="check-salon">✓</span> QR appointment tickets</div>
+                        </div>
+ 
                     </div>
+ 
                     <a href="https://portfolio-wjt8.onrender.com" class="project-link" target="_blank">
                         View Live Demo
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </a>
                 </div>
             </article>
