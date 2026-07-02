@@ -2,7 +2,7 @@
 
 # Shoaib Rana — Portfolio
 
-**Full-stack engineer building AI-powered SaaS products end-to-end — 14 projects, from GPT-integrated features to production deployment, all with live, clickable demos.**
+**Full-stack engineer building AI-powered SaaS products end-to-end, 14 projects, from GPT-integrated features to production deployment, all with live, clickable demos.**
 
 [![Live Demo](https://img.shields.io/badge/demo-live-c084fc?style=for-the-badge)](https://portfolio-pied-two-34.vercel.app/)
 [![Vercel](https://img.shields.io/badge/hosted%20on-Vercel-000000?style=for-the-badge&logo=vercel)](https://vercel.com)
@@ -10,12 +10,6 @@
 [View Live Site](https://portfolio-pied-two-34.vercel.app/) · [Contact](mailto:shoaib.rana888@gmail.com)
 
 </div>
-
-<!--
-SCREENSHOT — hero section
-Save as: screenshots/hero.png
-Capture: full hero section (badge, "Full-Stack. AI SaaS." headline, stats row) at 1440px wide
--->
 ![Portfolio hero section](./screenshots/hero.png)
 
 ---
