@@ -76,7 +76,7 @@ No framework, no build step — the shell itself is pure HTML/CSS/JS, deployed a
 ## Getting started
 
 ```bash
-git clone https://github.com/ShoaibRana888/portfolio.git && cd portfo
+git clone https://github.com/ShoaibRana888/portfolio.git && cd portfolio
 npm install && npm start   # → http://localhost:3000
 ```
 
