@@ -28,17 +28,9 @@ No framework, no build step — the shell itself is pure HTML/CSS/JS, deployed a
 
 ## Screenshots
 
-<!--
-Capture each of these from https://portfolio-pied-two-34.vercel.app/ at ~1440x900 (desktop)
-and save into a `screenshots/` folder at the repo root with these exact filenames.
-A mobile shot or two (375px wide) is a nice bonus for the "responsive" claim.
--->
-
 | | |
 |---|---|
 | **Hero** — landing view with headline & stats | ![Hero](./screenshots/hero.png) |
-| **Creative Interfaces** — project grid | ![Creative Interfaces](./screenshots/creative-interfaces.png) |
-| **Shipped Products** — full-stack project grid | ![Shipped Products](./screenshots/shipped-products.png) |
 | **About** — bio & skills | ![About](./screenshots/about.png) |
 | **Contact** | ![Contact](./screenshots/contact.png) |
 
