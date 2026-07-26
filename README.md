@@ -54,6 +54,7 @@ No framework, no build step — the shell itself is pure HTML/CSS/JS, deployed a
 
 | Project | Tags | Description |
 |---|---|---|
+| **AskDocs — Grounded Document Q&A (RAG)** | FastAPI · Anthropic Claude · ChromaDB · Hybrid RAG · JWT | AI micro-SaaS that answers strictly from your uploaded documents as validated, cited JSON. Hybrid retrieval (dense vectors + BM25 keyword, fused with RRF), a two-layer prompt-injection guard, per-user isolation, live telemetry, an eval suite, and CI/CD. |
 | **[Nufitionist — AI Health & Fitness Coach](https://fitness-flutter-app.vercel.app/)** | Flutter · Dart · ChatGPT | Cross-platform (Web/Android/iOS) fitness coaching app from a single codebase, with an integrated ChatGPT-powered coach. |
 | **[Duel Arena](https://dual-arena.vercel.app/)** | React · Ably · WebSockets | Real-time multiplayer platform with four classic games — shareable room codes, live chat, zero dedicated backend. |
 | **[EVENTIX — Booking Platform](https://portfolio-wjt8.onrender.com)** | Node.js · Express · SQLite · React | Booking platform with an event ticketing system (interactive seat maps) and a salon appointment system, sharing one concurrency engine with race-condition protection and QR ticketing. |

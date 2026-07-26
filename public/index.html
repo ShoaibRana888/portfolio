@@ -783,7 +783,7 @@
         </p>
         <div class="hero-stats fade-in">
             <div class="stat">
-                <span class="stat-value">14+</span>
+                <span class="stat-value">15+</span>
                 <span class="stat-label">Projects Showcased</span>
             </div>
             <div class="stat">
@@ -1101,6 +1101,93 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M5 12h14M12 5l7 7-7 7"/>
                         </svg>
+                    </a>
+                </div>
+            </article>
+
+            <!-- AskDocs — Grounded Document Q&A (RAG) -->
+            <article class="project-card featured fade-in">
+                <div class="project-preview" style="background: linear-gradient(135deg, #0b0d16 0%, #10132a 100%); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; min-height: 500px;">
+                    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 25% 15%, rgba(79,90,230,0.16) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 75% 80%, rgba(15,157,106,0.10) 0%, transparent 60%);"></div>
+                    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);background-size:48px 48px;"></div>
+                    <div style="position:relative;z-index:1;text-align:center;padding:2.5rem;width:100%;max-width:520px;">
+                        <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:1rem;">
+                            <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#4b57e6,#2f3bd6);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#eef0ff;box-shadow:0 0 24px rgba(75,87,230,0.45);">A</div>
+                            <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;color:#eef1ff;letter-spacing:-0.3px;">Ask·Docs</span>
+                        </div>
+                        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(15,157,106,0.12);border:1px solid rgba(15,157,106,0.28);color:#5fe3a1;border-radius:999px;padding:4px 12px;font-size:0.72rem;margin-bottom:1.75rem;">✓ grounded in your docs</div>
+                        <div style="background:#0d1022;border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px 16px;text-align:left;font-size:0.82rem;color:#aab2d5;line-height:1.5;margin-bottom:1.25rem;">
+                            “Everything should be made as simple as possible, but no simpler.” — attributed to Einstein, found on <span style="color:#7d8ae8;">p.69</span>.
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:#0d1022;border:1px solid rgba(255,255,255,0.07);border-radius:12px;overflow:hidden;margin-bottom:1.5rem;">
+                            <div style="padding:11px 6px;border-right:1px solid rgba(255,255,255,0.06);">
+                                <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.06em;color:#5a6392;">LATENCY</div>
+                                <div style="font-family:'JetBrains Mono',monospace;font-size:0.9rem;color:#e8ebf6;margin-top:3px;">1.9s</div>
+                            </div>
+                            <div style="padding:11px 6px;border-right:1px solid rgba(255,255,255,0.06);">
+                                <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.06em;color:#5a6392;">TOKENS</div>
+                                <div style="font-family:'JetBrains Mono',monospace;font-size:0.9rem;color:#e8ebf6;margin-top:3px;">1.4k</div>
+                            </div>
+                            <div style="padding:11px 6px;border-right:1px solid rgba(255,255,255,0.06);">
+                                <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.06em;color:#5a6392;">GUARD</div>
+                                <div style="font-family:'JetBrains Mono',monospace;font-size:0.9rem;color:#5fe3a1;margin-top:3px;">passed</div>
+                            </div>
+                            <div style="padding:11px 6px;">
+                                <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.06em;color:#5a6392;">MODEL</div>
+                                <div style="font-family:'JetBrains Mono',monospace;font-size:0.9rem;color:#e8ebf6;margin-top:3px;">Sonnet</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+                            <div style="background:rgba(79,90,230,0.08);border:1px solid rgba(79,90,230,0.2);border-radius:8px;padding:8px 14px;font-size:0.75rem;color:#8b93bf;">🔎 Hybrid RAG</div>
+                            <div style="background:rgba(79,90,230,0.08);border:1px solid rgba(79,90,230,0.2);border-radius:8px;padding:8px 14px;font-size:0.75rem;color:#8b93bf;">🛡️ Injection-guarded</div>
+                            <div style="background:rgba(79,90,230,0.08);border:1px solid rgba(79,90,230,0.2);border-radius:8px;padding:8px 14px;font-size:0.75rem;color:#8b93bf;">📑 Cited JSON</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <div class="project-tags">
+                        <span class="project-tag highlight">Full-Stack</span>
+                        <span class="project-tag">FastAPI</span>
+                        <span class="project-tag">Anthropic Claude</span>
+                        <span class="project-tag">RAG</span>
+                        <span class="project-tag">ChromaDB</span>
+                        <span class="project-tag">JWT</span>
+                    </div>
+                    <h3 class="project-title">AskDocs — Grounded Document Q&amp;A (RAG)</h3>
+                    <p class="project-description">
+                        An AI micro-SaaS that answers questions <em>only</em> from your own uploaded
+                        documents and returns validated, cited JSON — never an ungrounded guess.
+                        Retrieval is hybrid: dense vector search fused with a BM25 keyword ranker
+                        (Reciprocal Rank Fusion), so exact-term matches surface even when semantic
+                        similarity misses them. Retrieved text is fed to the model as untrusted data
+                        behind a two-layer prompt-injection guard, and every answer ships with a live
+                        telemetry strip. Backed by a full engineering harness: eval suite, CI/CD, and
+                        per-user tenant isolation.
+                    </p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1rem 0;">
+                        <span style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted);"><span style="color: #4b57e6;">✓</span> Hybrid vector + keyword retrieval</span>
+                        <span style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted);"><span style="color: #4b57e6;">✓</span> Cited, structured JSON answers</span>
+                        <span style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted);"><span style="color: #4b57e6;">✓</span> Two-layer prompt-injection guard</span>
+                        <span style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted);"><span style="color: #4b57e6;">✓</span> Per-user document isolation</span>
+                        <span style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted);"><span style="color: #4b57e6;">✓</span> Live telemetry (tokens, latency, trace)</span>
+                        <span style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted);"><span style="color: #4b57e6;">✓</span> Local embeddings — $0 per-query retrieval</span>
+                    </div>
+
+                    <div class="demo-creds">
+                        <div class="demo-creds-title">🔑 Demo Credentials</div>
+                        <div class="demo-creds-row">
+                            <span class="demo-creds-label">Email</span>
+                            <span class="demo-creds-value">demo@askdocs.app</span>
+                        </div>
+                        <div class="demo-creds-row">
+                            <span class="demo-creds-label">Password</span>
+                            <span class="demo-creds-value">Demo!2026</span>
+                        </div>
+                    </div>
+
+                    <a href="https://askdocs-lpns.onrender.com/" class="project-link" target="_blank">
+                        View Live Demo
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </a>
                 </div>
             </article>
