@@ -66,16 +66,16 @@ No framework, no build step — the shell itself is pure HTML/CSS/JS, deployed o
 ## AI assistant & contact form
 
 - **Chat assistant** — the floating "Ask AI" button opens a chatbot (OpenAI `gpt-4o-mini`) that answers questions about me and the projects on this page, and nothing else. Anyone who wants to talk to me is pointed to my email or the contact form. What it knows lives in [`api/_knowledge.js`](api/_knowledge.js) — update it when you add a project.
-- **Contact form** — the form in the Contact section is emailed to me via [Resend](https://resend.com); replying to the email replies to the visitor.
+- **Contact form** — the form in the Contact section is emailed to me through my Gmail account (SMTP + an App Password); replying to the email replies to the visitor.
 
 Both are Vercel serverless functions in [`api/`](api), so API keys stay server-side. Set these in **Vercel → Project → Settings → Environment Variables** and redeploy:
 
 | Variable | Required | Purpose |
 |---|---|---|
 | `OPENAI_API_KEY` | yes | Chat assistant. Set a monthly spend limit on the key. |
-| `RESEND_API_KEY` | yes | Contact form email delivery. |
-| `CONTACT_TO_EMAIL` | no | Recipient (default `shoaib.rana888@gmail.com`). |
-| `CONTACT_FROM_EMAIL` | no | Sender (default `onboarding@resend.dev`, which only delivers to the email your Resend account was created with; verify a domain to change that). |
+| `GMAIL_USER` | yes | Gmail address the form sends from, e.g. `shoaib.rana888@gmail.com`. |
+| `GMAIL_APP_PASSWORD` | yes | Google [App Password](https://myaccount.google.com/apppasswords) for that account (needs 2-Step Verification). Not your normal password. |
+| `CONTACT_TO_EMAIL` | no | Where messages go (defaults to `GMAIL_USER`). |
 | `OPENAI_MODEL` | no | Defaults to `gpt-4o-mini`. |
 
 `npm start` serves the static files only, so `/api` won't respond. To try the assistant and form locally, run `npx vercel dev` with the variables above in a `.env.local` file.

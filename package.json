@@ -6,6 +6,7 @@
     "start": "serve public -l 3000"
   },
   "dependencies": {
+    "nodemailer": "^10.1.0",
     "serve": "^14.2.0"
   }
 }
