@@ -24,7 +24,7 @@ The site is organized into three parts:
 2. **Shipped Products** — full-stack applications (AI SaaS tools, real-time multiplayer, e-commerce) that live in their own repos and are linked out to their own deployments.
 3. **About / Contact** — a short bio, skill grid, and a direct way to get in touch.
 
-No framework, no build step — the shell itself is pure HTML/CSS/JS, deployed as a static site on Vercel.
+No framework, no build step — the shell itself is pure HTML/CSS/JS, deployed on Vercel with two small serverless functions behind the AI assistant and the contact form (see [AI assistant & contact form](#ai-assistant--contact-form)).
 
 ## Screenshots
 
@@ -63,13 +63,31 @@ No framework, no build step — the shell itself is pure HTML/CSS/JS, deployed a
 | **[JobTrackr](https://job-trackr-gamma-lilac.vercel.app/)** | Next.js 14 · FastAPI · Supabase · OpenAI | AI job-application tracker — Kanban dashboard, GPT-4o mini resume match scoring and cover-letter generation, Supabase row-level security. |
 | **[ReviewQR](https://google-reviews-wine.vercel.app)** | Next.js · Supabase · TypeScript | QR-based review management for small businesses — routes high ratings to Google Reviews, captures low ratings privately. |
 
+## AI assistant & contact form
+
+- **Chat assistant** — the floating "Ask AI" button opens a chatbot (OpenAI `gpt-4o-mini`) that answers questions about me and the projects on this page, and nothing else. Anyone who wants to talk to me is pointed to my email or the contact form. What it knows lives in [`api/_knowledge.js`](api/_knowledge.js) — update it when you add a project.
+- **Contact form** — the form in the Contact section is emailed to me via [Resend](https://resend.com); replying to the email replies to the visitor.
+
+Both are Vercel serverless functions in [`api/`](api), so API keys stay server-side. Set these in **Vercel → Project → Settings → Environment Variables** and redeploy:
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `OPENAI_API_KEY` | yes | Chat assistant. Set a monthly spend limit on the key. |
+| `RESEND_API_KEY` | yes | Contact form email delivery. |
+| `CONTACT_TO_EMAIL` | no | Recipient (default `shoaib.rana888@gmail.com`). |
+| `CONTACT_FROM_EMAIL` | no | Sender (default `onboarding@resend.dev`, which only delivers to the email your Resend account was created with; verify a domain to change that). |
+| `OPENAI_MODEL` | no | Defaults to `gpt-4o-mini`. |
+
+`npm start` serves the static files only, so `/api` won't respond. To try the assistant and form locally, run `npx vercel dev` with the variables above in a `.env.local` file.
+
 ## Tech stack
 
 **This repo (the portfolio shell):**
 - Pure HTML / CSS / JavaScript — no framework, no build step
 - Google Fonts (Syne, Space Grotesk, JetBrains Mono)
 - Live demos embedded via `iframe`
-- Served locally with [`serve`](https://www.npmjs.com/package/serve)
+- Vercel serverless functions (Node.js) for the OpenAI-powered assistant and the contact form
+- Served locally with [`serve`](https://www.npmjs.com/package/serve) (or `vercel dev` to include `/api`)
 - Deployed as a static site on **Vercel**
 
 **Across featured projects:** React, Next.js, Vue 3, Angular 17, SvelteKit, Node.js/Express, FastAPI, Laravel 12, Flutter, Supabase, MongoDB, MySQL, Ably (WebSockets), OpenAI/GPT-4o.
